@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACAII — Innovator Check-In Platform</title>
+<style>
+:root{--navy:#1E3A5F;--blue:#2563EB;--green:#166534;--red:#991B1B;--amber:#92400E;--bg:#F5F6FA;--white:#FFFFFF;--text:#111827;--muted:#6B7280;--border:#D1D5DB;--light:#F9FAFB;--green-bg:#F0FDF4;--red-bg:#FEF2F2;--amber-bg:#FFFBEB}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.header{background:var(--navy);color:#fff;padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:15px;font-weight:700;letter-spacing:.5px}
+.header span{font-size:12px;opacity:.55;margin-left:10px}
+.hn{background:transparent;border:none;color:#fff;padding:7px 13px;font-size:12px;cursor:pointer;border-radius:4px;opacity:.7}
+.hn:hover,.hn.active{background:rgba(255,255,255,.15);opacity:1}
+.container{max-width:820px;margin:0 auto;padding:26px 18px}
+.container-wide{max-width:1040px;margin:0 auto;padding:26px 18px}
+.view{display:none}.view.active{display:block}
+.card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:22px;margin-bottom:14px}
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px}
+.sec-title{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.sec-desc{font-size:13px;color:var(--muted);border-left:3px solid var(--border);padding-left:10px;margin-bottom:20px;line-height:1.6}
+.progress-track{display:flex;gap:3px;margin-bottom:18px}
+.progress-seg{flex:1;height:3px;background:var(--border);border-radius:2px}
+.progress-seg.done{background:var(--green)}.progress-seg.active{background:var(--blue)}
+.progress-info{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.q-num{display:inline-block;font-size:11px;font-weight:700;color:var(--muted);margin-right:5px}
+.hint{font-size:12px;color:var(--muted);background:var(--light);border:1px solid var(--border);padding:8px 11px;border-radius:4px;margin-bottom:7px;font-style:italic}
+.prev-box{font-size:12px;background:#EFF6FF;border:1px solid #BFDBFE;padding:8px 11px;border-radius:4px;margin-bottom:7px}
+.prev-box .pl{font-weight:700;color:#1D4ED8;font-size:11px;text-transform:uppercase;margin-bottom:2px}
+input[type="text"],input[type="number"],input[type="url"],input[type="email"],input[type="password"],select,textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;background:var(--white);color:var(--text);transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+textarea{resize:vertical;min-height:78px;line-height:1.6}
+input.f-ok,textarea.f-ok{border-color:var(--green);background:var(--green-bg)}
+input.f-warn,textarea.f-warn{border-color:#D97706;background:var(--amber-bg)}
+input.f-bad,textarea.f-bad{border-color:var(--red);background:var(--red-bg)}
+.char-info{font-size:11px;color:var(--muted);margin-top:3px;text-align:right}
+.char-info.short{color:var(--red);font-weight:600}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.irl-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px}
+.irl-item{border:1px solid var(--border);border-radius:4px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s}
+.irl-item:hover{border-color:var(--blue)}.irl-item.selected{border-color:var(--navy);background:var(--navy);color:#fff}
+.irl-n{font-size:18px;font-weight:700}.irl-l{font-size:9px;margin-top:2px;line-height:1.3;color:var(--muted)}
+.irl-item.selected .irl-l{color:rgba(255,255,255,.7)}
+.notice{display:flex;gap:9px;padding:8px 11px;border-radius:4px;margin-top:5px;font-size:12px;align-items:flex-start;line-height:1.5}
+.notice.err{background:var(--red-bg);border-left:3px solid var(--red);color:var(--red)}
+.notice.warn{background:var(--amber-bg);border-left:3px solid #D97706;color:var(--amber)}
+.notice.ok{background:var(--green-bg);border-left:3px solid var(--green);color:var(--green)}
+.btn{padding:8px 18px;border-radius:4px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:#162d4a}
+.btn-secondary{background:var(--white);color:var(--navy);border:1px solid var(--border)}.btn-secondary:hover{background:var(--bg)}
+.btn-success{background:var(--green);color:#fff}
+.btn-sm{padding:6px 13px;font-size:12px}.btn-xs{padding:4px 9px;font-size:11px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.nav-row{display:flex;justify-content:space-between;align-items:center;padding-top:18px;border-top:1px solid var(--border);margin-top:22px}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700}
+.b-green{background:#DCFCE7;color:var(--green)}.b-red{background:#FEE2E2;color:var(--red)}
+.b-amber{background:#FEF3C7;color:var(--amber)}.b-blue{background:#DBEAFE;color:#1D4ED8}
+.b-gray{background:#F3F4F6;color:#374151}.b-navy{background:#EFF6FF;color:var(--navy)}
+.risk-bar{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin:6px 0}
+.risk-fill{height:100%;border-radius:99px}
+.score-block{padding:18px;border:1px solid var(--border);border-radius:6px;margin-bottom:14px}
+.score-num{font-size:44px;font-weight:800;line-height:1}
+.flag{padding:10px 13px;border-radius:4px;margin-bottom:7px}
+.flag.critical{background:var(--red-bg);border-left:3px solid var(--red)}
+.flag.warning{background:var(--amber-bg);border-left:3px solid #D97706}
+.flag .flag-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px}
+.flag .flag-msg{font-size:13px;font-weight:600}.flag .flag-q{font-size:12px;color:var(--muted);margin-top:2px}
+.answer-block{padding:11px 0;border-bottom:1px solid var(--border)}
+.answer-block:last-child{border-bottom:none}
+.answer-q{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.answer-a{font-size:13px;background:var(--light);padding:8px 11px;border-radius:4px;border-left:3px solid var(--border);line-height:1.6}
+.answer-a.flagged{border-left-color:var(--red);background:var(--red-bg)}
+.answer-a.warned{border-left-color:#D97706;background:var(--amber-bg)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:9px 13px;text-align:left;border-bottom:2px solid var(--border);background:var(--light)}
+td{padding:9px 13px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
+.doc-item{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--border)}
+.doc-item:last-child{border-bottom:none}
+.doc-check{width:18px;height:18px;border:2px solid var(--border);border-radius:3px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.doc-check.checked{background:var(--navy);border-color:var(--navy);color:#fff}
+.doc-link-input{width:180px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.section-group{margin-bottom:26px}
+.section-group-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--navy);padding:5px 0;border-bottom:2px solid var(--navy);margin-bottom:14px}
+.entry-wrap{min-height:calc(100vh - 52px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px}
+.entry-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:680px;width:100%;margin-top:26px}
+.entry-card{background:var(--white);border:2px solid var(--border);border-radius:8px;padding:28px;cursor:pointer;transition:all .15s;text-align:center}
+.entry-card:hover{border-color:var(--navy);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.entry-card h3{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.entry-card p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.88);display:none;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:12px}
+.loading-overlay.active{display:flex}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.inn-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:11px}
+.inn-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:15px}
+.inn-card:hover{border-color:var(--blue)}
+.empty-state{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty-state h3{font-size:15px;font-weight:600;margin-bottom:7px;color:var(--text)}
+.cmp-up{color:var(--green);font-weight:700;font-size:12px}
+.cmp-dn{color:var(--red);font-weight:700;font-size:12px}
+@media print{.header .header-nav,.nav-row .btn,.no-print{display:none!important}.view{display:block!important}.container,.container-wide{max-width:100%;padding:8px}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div style="display:flex;align-items:center">
+    <h1>ACAII</h1><span id="hdr-sub">Innovator Check-In Platform</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:4px">
+    <div id="pm-bar" style="display:none;align-items:center;gap:4px">
+      <nav id="pm-nav" style="display:flex;gap:2px">
+        <button class="hn active" onclick="App.pmGo('home')">Innovators</button>
+        <button class="hn" onclick="App.pmGo('history')">Submissions</button>
+        <button class="hn" onclick="App.pmGo('dashboard')">Dashboard</button>
+      </nav>
+      <span style="font-size:12px;color:rgba(255,255,255,.4);margin:0 6px">|</span>
+      <span id="pm-email-lbl" style="font-size:11px;color:rgba(255,255,255,.55)"></span>
+      <button class="hn" onclick="App.pmLogout()">Logout</button>
+    </div>
+    <div id="inn-bar" style="display:none;align-items:center;gap:8px">
+      <span id="inn-hdr-name" style="font-size:12px;color:rgba(255,255,255,.7)"></span>
+      <button class="hn" onclick="App.innLogout()">Exit</button>
+    </div>
+  </div>
+</header>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:var(--muted)" id="loading-msg">Loading...</div>
+</div>
+
+<!-- ENTRY -->
+<div id="v-entry" class="view active">
+  <div class="entry-wrap">
+    <div style="text-align:center">
+      <div style="font-size:22px;font-weight:800;color:var(--navy)">ACAII Innovation Programme</div>
+      <div style="font-size:14px;color:var(--muted);margin-top:4px">African Centre for Technology Studies — AI Innovation Check-In System</div>
+    </div>
+    <div id="cfg-warn" style="display:none;background:#FFF3CD;border:1px solid #FFC107;padding:13px 18px;border-radius:6px;margin-top:18px;font-size:13px;max-width:680px;width:100%">
+      <strong style="color:#856404">Setup required:</strong> Replace the SHEETS_API_URL value in this file with your Google Apps Script Web App URL before going live. See the comment block at the top of the script section.
+    </div>
+    <div class="entry-cards">
+      <div class="entry-card" onclick="App.show('v-code')">
+        <h3>I am a Funded Innovator</h3>
+        <p>Complete your check-in using the access code your programme manager shared with you.</p>
+        <button class="btn btn-primary" style="width:100%">Enter Access Code</button>
+      </div>
+      <div class="entry-card" onclick="App.show('v-pm-login')">
+        <h3>Programme Manager</h3>
+        <p>Access the portfolio dashboard, register innovators, review submissions, and generate reports.</p>
+        <button class="btn btn-secondary" style="width:100%">Manager Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INNOVATOR CODE -->
+<div id="v-code" class="view">
+  <div style="min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:32px;width:100%;max-width:440px">
+      <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px">Enter Your Access Code</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Your programme manager will have shared a unique code with you. It looks like: <strong>ACAII-AB1C2D</strong></div>
+      <div class="field">
+        <label>Access Code</label>
+        <input type="text" id="code-inp" placeholder="e.g. ACAII-AB1C2D" style="font-size:16px;letter-spacing:.5px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')App.validateCode()">
+      </div>
+      <div id="code-err" style="display:none;background:var(--red-bg);border-left:3px solid var(--red);padding:8px 11px;border-radius:4px;font-size:12px;color:var(--red);margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn btn-secondary" onclick="App.show('v-entry')">Back</button>
+        <button class="btn btn-primary" onclick="App.validateCode()" style="flex:1">Access My Check-In</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PM LOGIN -->
+<div id="v-pm-login" class="view">
+  <div style="min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:32px;width:100%;max-width:380px">
+      <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px">Programme Manager Login</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Enter the PM password you set in Apps Script Script Properties.</div>
+      <div class="field"><label>Password</label><input type="password" id="pm-pass-inp" placeholder="Enter PM password" onkeydown="if(event.key==='Enter')App.pmLogin()"></div>
+      <div id="login-err" style="display:none;font-size:12px;color:var(--red);margin-bottom:10px"></div>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn btn-secondary" onclick="App.show('v-entry')">Back</button>
+        <button class="btn btn-primary" onclick="App.pmLogin()" style="flex:1">Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INNOVATOR HOME -->
+<div id="v-inn-home" class="view">
+  <div class="container"><div id="inn-home-body"></div></div>
+</div>
+
+<!-- PM HOME -->
+<div id="v-pm-home" class="view">
+  <div class="container">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:var(--navy)">Registered Innovators</div>
+        <button class="btn btn-primary btn-sm" onclick="App.openModal()">Register New Innovator</button>
+      </div>
+      <div class="inn-list" id="pm-inn-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD -->
+<div id="v-wizard" class="view">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px" class="no-print">
+      <button class="btn btn-secondary btn-sm" onclick="App.wizBack()">Back</button>
+      <div style="font-size:13px;color:var(--muted)" id="wiz-meta"></div>
+    </div>
+    <div class="progress-info"><span id="wiz-sec-label"></span><span id="wiz-q-count"></span></div>
+    <div class="progress-track" id="wiz-progress"></div>
+    <div id="wiz-body"></div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div id="v-report" class="view">
+  <div class="container-wide">
+    <div style="display:flex;justify-content:space-between;margin-bottom:18px" class="no-print">
+      <button class="btn btn-secondary btn-sm" id="report-back-btn">Back</button>
+      <button class="btn btn-primary btn-sm" onclick="window.print()">Print / Save PDF</button>
+    </div>
+    <div id="report-body"></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="v-history" class="view">
+  <div class="container-wide">
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:14px">All Submissions</div>
+      <div id="history-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="v-dashboard" class="view">
+  <div class="container-wide" id="dashboard-body"></div>
+</div>
+
+<!-- THANK YOU -->
+<div id="v-thanks" class="view">
+  <div style="min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:36px;max-width:500px;width:100%;text-align:center">
+      <div style="font-size:32px;color:var(--green);margin-bottom:10px">&#10003;</div>
+      <div style="font-size:20px;font-weight:700;color:var(--green);margin-bottom:8px">Submission Received</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.7" id="thanks-msg"></div>
+      <div id="thanks-score" style="margin-bottom:20px"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" id="thanks-report-btn">View My Report</button>
+        <button class="btn btn-secondary" onclick="App.innLogout()">Exit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REGISTER INNOVATOR -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;align-items:center;justify-content:center" onclick="if(event.target.id==='modal')App.closeModal()">
+  <div style="background:#fff;border-radius:6px;padding:26px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:700;color:var(--navy)">Register New Innovator</div>
+      <button onclick="App.closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">&#215;</button>
+    </div>
+    <form onsubmit="App.saveInnovator(event)">
+      <div class="field-row">
+        <div class="field"><label>Innovation Name *</label><input type="text" name="name" required placeholder="e.g. AgriSmart Kenya"></div>
+        <div class="field"><label>Organisation *</label><input type="text" name="org" required placeholder="e.g. FarmTech Ltd"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Programme</label>
+          <select name="programme"><option value="">Select...</option>
+            <option>UK-Kenya AI Challenge Fund</option><option>AI4D SRAIS Mentorship</option>
+            <option>AI4D Scholarship</option><option>AMR Hub</option><option>Other</option>
+          </select></div>
+        <div class="field"><label>Sector</label>
+          <select name="sector"><option value="">Select...</option>
+            <option>Agriculture</option><option>Health</option><option>Education</option>
+            <option>Climate</option><option>Gender and Inclusion</option><option>Financial Inclusion</option><option>Other</option>
+          </select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Country</label><input type="text" name="country" placeholder="e.g. Kenya"></div>
+        <div class="field"><label>Grant Amount (USD)</label><input type="number" name="grant" placeholder="75000"></div>
+      </div>
+      <div class="field"><label>Contact Email</label><input type="email" name="email" placeholder="lead@example.com"></div>
+      <div style="background:var(--green-bg);border:1px solid #86efac;border-radius:4px;padding:11px;margin-bottom:14px;font-size:12px;color:var(--green)">
+        An access code is generated automatically. Share it with the innovator so they can log in.
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="App.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="save-inn-btn">Register and Generate Code</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// GOOGLE SHEETS CONFIG — ONE VALUE TO SET BEFORE GOING LIVE
+// ================================================================
+// How to set up (see ACAII_Apps_Script.js for full instructions):
+//   1. Create a Google Sheet at sheets.google.com
+//   2. Go to Extensions > Apps Script
+//   3. Paste the contents of ACAII_Apps_Script.js and save
+//   4. Set your PM_PASSWORD in Project Settings > Script properties
+//   5. Click Deploy > New deployment > Web app
+//      Execute as: Me  |  Who has access: Anyone
+//   6. Copy the Web app URL and paste it below (replacing REPLACE_...)
+//   7. To host this HTML file free: drag it into Google Drive and
+//      share the link, OR use any static host (Netlify, GitHub Pages)
+// ================================================================
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxLehl0GetO4KmHEUrfH23h6nmLu8n5YtbrCA_ou2nnIO3QK95XunVAIpz70XYshUM/exec';
+
+const IS_CONFIGURED = !SHEETS_API_URL.startsWith('REPLACE');
+
+// Central API helper — all data calls go through here
+async function api(action, params={}, postBody=null){
+  if(!IS_CONFIGURED) throw new Error('Tool not configured. Set SHEETS_API_URL.');
+  let url = SHEETS_API_URL + '?action=' + encodeURIComponent(action);
+  for(const [k,v] of Object.entries(params)) url += '&' + k + '=' + encodeURIComponent(v);
+  const opts = postBody
+    ? { method:'POST', body:JSON.stringify(postBody), headers:{'Content-Type':'text/plain'} }
+    : {};
+  const res = await fetch(url, opts);
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  if(json.error) throw new Error(json.error);
+  return json;
+}
+
+// ── QUESTION BANK ────────────────────────────────────────────────
+const SECTIONS=[
+  {id:'s1',title:'Current Stage of Innovation',
+   desc:'Establish where the innovation is right now — what exists, what works, and what has been proven with real users before scaling begins.',
+   questions:[
+    {id:'q1a',type:'irl',label:'What is the current stage of your innovation?',hint:'Select the level that most accurately describes where your innovation stands today. Be honest — overstating your stage is a common red flag.',weight:3},
+    {id:'q1b',type:'textarea',minLen:10,label:'Provide the URL of your working product or live prototype.',hint:'If not yet live, explain exactly what stage the product is at and what specifically blocks deployment.',redFlags:['not ready','coming soon','still building','not live','in development'],weight:3},
+    {id:'q1c',type:'textarea',minLen:10,label:'Provide your code repository URL (GitHub / GitLab / Bitbucket).',hint:'If private, provide your username and your last commit date. If no repository, explain where the code is stored.',redFlags:['no repository','use local','not on github','no code'],weight:2},
+    {id:'q1d',type:'number',minVal:0,tracksChange:true,label:'How many active users does your product currently have?',hint:'Exact figure from your analytics tool. State which tool you used. Do not estimate.',weight:3},
+    {id:'q1e',type:'textarea',minLen:120,label:'Describe the strongest evidence you have that your innovation works.',hint:'Single most convincing proof point. Include specific numbers, dates, and named sources.',redFlags:['users are happy','it works well','positive response','people like it','good feedback generally'],weight:3},
+    {id:'q1f',type:'textarea',minLen:80,label:'What specific weaknesses or limitations does your current solution still have?',hint:'Every real product has limitations. If you say "none" that is a red flag.',redFlags:['no limitations','no weaknesses','works perfectly','no issues','nothing significant'],weight:2},
+  ]},
+  {id:'s2',title:'User Evidence and Traction',
+   desc:'Verify that real people are using the product — not test accounts, team members, or projections.',
+   questions:[
+    {id:'q2a',type:'number',minVal:0,tracksChange:true,label:'How many unique users accessed your product in the last 30 days?',hint:'Exact number from an analytics tool. State the tool name.',weight:3},
+    {id:'q2b',type:'textarea',minLen:120,label:'Name three real users: their first name, location, and what they specifically used the product for this month.',hint:'Must be real external users — not team members or test accounts. Include enough detail that ACAII could contact them.',redFlags:['test user','our team','anonymous','cannot share','internal','confidential users'],weight:3},
+    {id:'q2c',type:'textarea',minLen:60,label:'Copy and paste one piece of verbatim feedback from a real user received this month.',hint:'Include the user name or alias, date received, and exact words. Do not paraphrase.',redFlags:['positive feedback','users are satisfied','they like it','good reviews','no specific feedback'],weight:2},
+    {id:'q2d',type:'textarea',minLen:60,label:'What complaint or problem did a real user report in the last 14 days? How did you respond?',hint:'No product is perfect. "No complaints" is a red flag.',redFlags:['no complaints','no issues','no problems','all users satisfied','nothing reported'],weight:2},
+    {id:'q2e',type:'textarea',minLen:40,label:'What is your user retention rate and how do you measure it?',hint:'What percentage of users who try the product return? Provide the measurement method.',redFlags:['we do not track','not measured','unknown','we estimate','not sure'],weight:2},
+  ]},
+  {id:'s3',title:'Why Are You Ready to Scale?',
+   desc:'Establish the case for scaling — why now, why this product, and what specific evidence supports readiness.',
+   questions:[
+    {id:'q3a',type:'textarea',minLen:120,label:'What specific evidence shows that demand exists beyond your current user base?',hint:'Reference real data: waiting lists, letters of intent, partner demand, government interest, or documented community need.',redFlags:['we believe','we think','people will','there is potential','we expect demand'],weight:3},
+    {id:'q3b',type:'textarea',minLen:80,label:'What has changed in the last six months that makes scaling viable now?',hint:'Something must have shifted: a technical milestone, new partnership, validated evidence. What specifically changed?',redFlags:['nothing has changed','we are ready','it was always viable','no specific change'],weight:2},
+    {id:'q3c',type:'textarea',minLen:100,label:'Name three organisations with concrete interest in your solution for scaling purposes.',hint:'Include the organisation name, the person you spoke with, and what was discussed or agreed.',redFlags:['various organisations','some partners','organisations are interested','we are in discussions generally'],weight:2},
+    {id:'q3d',type:'textarea',minLen:80,label:'What specific gap does this scaling grant fill that you cannot fill through other means?',hint:'Why is this grant necessary? What would not happen without it?',redFlags:['we need funding','more resources','helps us grow','general support'],weight:2},
+    {id:'q3e',type:'textarea',minLen:80,label:'Describe your theory of change: how does scaling this lead to lasting impact at a systems level?',hint:'Trace the logic: if your solution reaches X users, what changes? Link to a development outcome.',redFlags:['we will help people','improve lives','make a difference','positive impact generally'],weight:2},
+  ]},
+  {id:'s4',title:'Phase 1 — Foundation (Months 1 to 3)',
+   desc:'Detail exactly what will be put in place: infrastructure, team, systems, and partnerships.',
+   questions:[
+    {id:'q4a',type:'textarea',minLen:120,label:'What specific infrastructure, systems, or processes will you establish in Phase 1?',hint:'List each item: what will be built, procured, or set up, and by which month.',redFlags:['set up systems','prepare for scaling','lay the groundwork','general preparation'],weight:2},
+    {id:'q4b',type:'textarea',minLen:80,label:'Who will you hire or bring on during Phase 1? State their name or role, what they will do, and when they start.',hint:'If not yet identified, describe the role and recruitment timeline.',redFlags:['hire someone','bring in staff','recruit team members','get more people'],weight:2},
+    {id:'q4c',type:'textarea',minLen:60,label:'State the one milestone that marks Phase 1 as complete. Exact deliverable and date.',hint:'Must be specific, measurable, and verifiable by ACAII.',redFlags:['foundation is complete','ready to scale','preparation done','set up finished'],weight:3},
+    {id:'q4d',type:'textarea',minLen:60,label:'What evidence will you submit to ACAII to prove Phase 1 is complete?',hint:'Name the specific evidence: signed MOU, analytics export, deployment URL, field report.',weight:2},
+    {id:'q4e',type:'textarea',minLen:60,label:'What is the main risk that could prevent Phase 1 completing on time, and your mitigation plan?',hint:'Every phase has risks. "No risks" is a red flag.',redFlags:['no risks','no major risks','no significant risks','nothing will go wrong'],weight:2},
+  ]},
+  {id:'s5',title:'Phase 2 — Active Scaling (Months 4 to 9)',
+   desc:'The core scaling period. Detail how user growth, geographic expansion, and partnerships will happen.',
+   questions:[
+    {id:'q5a',type:'number',minVal:0,tracksChange:false,label:'Target number of monthly active users by end of Phase 2.',hint:'Specific number. Explain the basis for this target.',weight:3},
+    {id:'q5b',type:'textarea',minLen:100,label:'Which specific geographic areas will you expand into during Phase 2, and how will you enter each one?',hint:'Name the counties, regions, or countries. For each, describe the entry method.',redFlags:['various areas','expand nationally','across the country','several regions','where needed'],weight:2},
+    {id:'q5c',type:'textarea',minLen:100,label:'Name the three partnerships most critical for Phase 2. State partner, role, and current status.',hint:'Include whether agreements are signed, in negotiation, or in discussion.',redFlags:['we will partner with','partnerships to be established','looking for partners','networking with'],weight:3},
+    {id:'q5d',type:'textarea',minLen:80,label:'How specifically will new users be onboarded at scale? Describe the process step by step.',hint:'At scale, onboarding cannot be manual. Describe the system or channel.',redFlags:['we will onboard them','train users','bring users on','tell people about it'],weight:2},
+    {id:'q5e',type:'textarea',minLen:80,label:'List five KPIs you will track during Phase 2 with your target for each.',hint:'Example: Monthly Active Users — target 5,000 by Month 6. Each KPI needs a number and a date.',redFlags:['general metrics','growth metrics','usage statistics','various KPIs'],weight:2},
+  ]},
+  {id:'s6',title:'Phase 3 — Sustainability (Months 10 to 12)',
+   desc:'How the innovation will survive and continue serving users after the grant ends.',
+   questions:[
+    {id:'q6a',type:'textarea',minLen:100,label:'What is your revenue or income model after the grant ends? Describe it specifically.',hint:'How will money come in? Who pays, how much, when? If not revenue-based, what mechanism sustains operations?',redFlags:['we will find funding','seek more grants','explore revenue','will figure it out','future fundraising'],weight:3},
+    {id:'q6b',type:'number',minVal:0,tracksChange:false,isCurrency:true,label:'Projected monthly operating income at end of Phase 3 (USD).',hint:'Specific number based on your revenue model.',weight:2},
+    {id:'q6c',type:'textarea',minLen:60,label:'Show the basis for your revenue projection. How did you arrive at that number?',hint:'Example: 2,000 paying users at $2/month = $4,000/month. Walk through the calculation.',weight:2},
+    {id:'q6d',type:'textarea',minLen:80,label:'Which specific organisation could take over operations if ACAII withdrew support?',hint:'Name the organisation, the person you have spoken to, and the current status of that conversation.',redFlags:['we would manage','ourselves','the team','no one else needed','self-sustaining'],weight:2},
+    {id:'q6e',type:'textarea',minLen:80,label:'What does this innovation look like three years from now? Describe scale, geography, and impact.',hint:'Be specific. How many users, which countries, what outcomes.',redFlags:['we hope','we plan','potentially','could be','might reach'],weight:2},
+  ]},
+  {id:'s7',title:'Financial Plan, Documents, and Compliance',
+   desc:'Confirm the financial plan, verify document submissions, and confirm responsible AI compliance.',
+   questions:[
+    {id:'q7a',type:'number',minVal:0,isCurrency:true,label:'Total grant amount requested (USD).',hint:'Exact amount.',weight:2},
+    {id:'q7b',type:'textarea',minLen:120,label:'List your three largest budget line items: the item, amount, and specific justification.',hint:'Example: Personnel — Lead Developer 12 months at $1,500/month = $18,000 — justification: core development requires this role.',redFlags:['various costs','general expenses','operational costs','team salaries generally','miscellaneous'],weight:3},
+    {id:'q7c',type:'textarea',minLen:60,label:'What other funding or income supports this project? List each source, amount, and status.',hint:'If none, state clearly. Co-funding demonstrates commitment and reduces funder risk.',weight:2},
+    {id:'q7d',type:'textarea',minLen:80,label:'Do you collect data from users? If yes, describe your privacy policy and user consent process.',hint:'What data is collected, where stored, who can access it, how users consent.',weight:2},
+    {id:'q7e',type:'textarea',minLen:80,label:'Have you tested your AI system for bias or unintended harm? Describe the test and findings.',hint:'If not yet done, state your plan with a specific timeline.',redFlags:['not yet','will do later','no bias','not applicable','plan to test','eventually'],weight:3},
+    {id:'q7f',type:'docs',label:'Document Submission Checklist',hint:'Confirm which documents you are submitting. Tick each and provide a link or reference.',weight:2},
+  ]},
+];
+
+const IRL_LEVELS=[
+  {n:1,label:'Concept',desc:'Idea only, no product'},
+  {n:2,label:'Research',desc:'Problem validated, no build'},
+  {n:3,label:'Prototype',desc:'Basic prototype'},
+  {n:4,label:'MVP',desc:'Tested with small group'},
+  {n:5,label:'Pilot',desc:'Field-tested with real users'},
+  {n:6,label:'Validated',desc:'Proven, ready to scale'},
+  {n:7,label:'Scaling',desc:'Already scaling'},
+];
+
+const DOCS=[
+  {id:'d1',name:'Certificate of incorporation / registration',required:true},
+  {id:'d2',name:'Organisation profile',required:true},
+  {id:'d3',name:'National ID or passport of project lead',required:true},
+  {id:'d4',name:'Bank account verification letter',required:true},
+  {id:'d5',name:'CVs of all key team members',required:true},
+  {id:'d6',name:'Financial statements (most recent year)',required:true},
+  {id:'d7',name:'Detailed project budget',required:true},
+  {id:'d8',name:'Scaling roadmap document',required:true},
+  {id:'d9',name:'Product demo video or live demo link',required:true},
+  {id:'d10',name:'Pilot report or user testing report',required:true},
+  {id:'d11',name:'Analytics export (user data)',required:false},
+  {id:'d12',name:'Letters of support from users or partners',required:false},
+  {id:'d13',name:'Responsible AI self-assessment',required:true},
+  {id:'d14',name:'Data protection or privacy policy',required:false},
+  {id:'d15',name:'Declaration of no conflict of interest',required:false},
+];
+
+const VAGUE=[
+  {re:/\bworking on it\b/i,msg:'"Working on it" is not a deliverable — state the specific outcome and date'},
+  {re:/\bsoon\b/i,msg:'"Soon" is not a timeline — give a specific date'},
+  {re:/\bvarious\b/i,msg:'"Various" is vague — list the specific items'},
+  {re:/\bwe are working\b/i,msg:'State the specific deliverable, not just that work is happening'},
+  {re:/\bmany users\b/i,msg:'"Many users" is not a number — provide the exact figure'},
+  {re:/\blots of\b/i,msg:'Provide a specific number instead of "lots of"'},
+  {re:/\bpositive feedback\b/i,msg:'Quote the actual feedback — "positive feedback" is not evidence'},
+  {re:/\bgoing well\b/i,msg:'"Going well" is not evidence — provide specific metrics'},
+  {re:/\bin the process\b/i,msg:'State exactly what stage and when it will complete'},
+  {re:/\bsome users\b/i,msg:'"Some users" needs an exact number'},
+  {re:/\bwe hope\b/i,msg:'"We hope" is not a plan — describe the concrete steps'},
+  {re:/\betc\.?\b/i,msg:'Do not use "etc" — list everything specifically'},
+  {re:/\bwill figure\b/i,msg:'Do not plan to "figure it out later" — provide the answer now'},
+];
+
+// ================================================================
+// APP
+// ================================================================
+const App={
+  S:{role:null,pmPassword:null,currentInn:null,wizInn:null,wizSec:0,
+     answers:{},liveFlags:{},prevAnswers:{},docChecks:{},docLinks:{},irlVal:null,
+     innovators:[],checkins:[],lastCiId:null},
+
+  // ── INIT ──────────────────────────────────────────────────────
+  init(){
+    if(!IS_CONFIGURED) document.getElementById('cfg-warn').style.display='block';
+    const saved=sessionStorage.getItem('pm_pw');
+    if(saved){ this.S.pmPassword=saved; this.S.role='pm'; this.initPM(); }
+    else { this.show('v-entry'); }
+  },
+
+  show(id){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(id)?.classList.add('active');
+    document.getElementById('pm-bar').style.display=this.S.role==='pm'?'flex':'none';
+    document.getElementById('inn-bar').style.display=this.S.role==='innovator'?'flex':'none';
+  },
+
+  loading(on,msg='Loading...'){
+    document.getElementById('loading-msg').textContent=msg;
+    document.getElementById('loading').classList.toggle('active',on);
+  },
+
+  // ── PM AUTH ───────────────────────────────────────────────────
+  async pmLogin(){
+    const pass=document.getElementById('pm-pass-inp').value;
+    const errEl=document.getElementById('login-err'); errEl.style.display='none';
+    if(!pass){errEl.textContent='Enter your password.';errEl.style.display='block';return;}
+    if(!IS_CONFIGURED){errEl.textContent='Tool not yet configured. Set SHEETS_API_URL in the source file.';errEl.style.display='block';return;}
+    this.loading(true,'Logging in...');
+    try{
+      const res=await api('validatePm',{pw:pass});
+      if(!res.valid){this.loading(false);errEl.textContent='Incorrect password.';errEl.style.display='block';return;}
+      sessionStorage.setItem('pm_pw',pass);
+      this.S.pmPassword=pass; this.S.role='pm';
+      await this.initPM();
+    }catch(e){
+      this.loading(false);
+      errEl.textContent='Login failed: '+e.message;
+      errEl.style.display='block';
+    }
+  },
+
+  pmLogout(){
+    sessionStorage.removeItem('pm_pw');
+    this.S.role=null; this.S.pmPassword=null; this.S.innovators=[]; this.S.checkins=[];
+    this.show('v-entry');
+  },
+
+  async initPM(){
+    this.loading(true,'Loading portfolio...');
+    document.getElementById('pm-email-lbl').textContent='Programme Manager';
+    await this.loadAll();
+    this.loading(false);
+    this.pmGo('home');
+  },
+
+  pmGo(page){
+    const map={home:'v-pm-home',history:'v-history',dashboard:'v-dashboard'};
+    this.show(map[page]||'v-pm-home');
+    document.querySelectorAll('#pm-nav .hn').forEach((b,i)=>b.classList.toggle('active',['home','history','dashboard'][i]===page));
+    if(page==='home') this.renderPMHome();
+    if(page==='history') this.renderHistory();
+    if(page==='dashboard') this.renderDashboard();
+  },
+
+  // ── DATA ──────────────────────────────────────────────────────
+  async loadAll(){
+    try{
+      const res=await api('getAll',{pw:this.S.pmPassword});
+      this.S.innovators=(res.innovators||[]).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+      this.S.checkins=(res.checkins||[]).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    }catch(e){ console.error('loadAll:',e); alert('Error loading data: '+e.message); }
+  },
+
+  // ── INNOVATOR ACCESS ──────────────────────────────────────────
+  async validateCode(){
+    const code=document.getElementById('code-inp').value.trim().toUpperCase();
+    const errEl=document.getElementById('code-err'); errEl.style.display='none';
+    if(!code){errEl.textContent='Please enter your access code.';errEl.style.display='block';return;}
+    if(!IS_CONFIGURED){errEl.textContent='System not yet configured. Contact your programme manager.';errEl.style.display='block';return;}
+    this.loading(true,'Verifying code...');
+    try{
+      const res=await api('getByCode',{code});
+      this.S.currentInn=res.innovator;
+      this.S.role='innovator';
+      document.getElementById('inn-hdr-name').textContent=this.S.currentInn.name;
+      const keep=this.S.checkins.filter(c=>c.innovatorId!==this.S.currentInn.id);
+      this.S.checkins=[...keep,...(res.checkins||[])];
+      this.loading(false);
+      this.renderInnHome();
+      this.show('v-inn-home');
+    }catch(e){
+      this.loading(false);
+      errEl.textContent=e.message==='not found'?'Code not found. Check with your programme manager.':'Error: '+e.message;
+      errEl.style.display='block';
+    }
+  },
+
+  innLogout(){
+    this.S.role=null; this.S.currentInn=null;
+    document.getElementById('code-inp').value='';
+    this.show('v-entry');
+  },
+
+  // ── INNOVATOR HOME ────────────────────────────────────────────
+  renderInnHome(){
+    const inn=this.S.currentInn;
+    const cis=this.S.checkins.filter(c=>c.innovatorId===inn.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const last=cis[0]; const rl=last?this.riskLevel(last.riskScore):null;
+    const irlD=last&&last.irl?IRL_LEVELS.find(l=>l.n===last.irl):null;
+    document.getElementById('inn-home-body').innerHTML=`
+      <div style="margin-bottom:16px">
+        <div style="font-size:20px;font-weight:700;color:var(--navy)">${inn.name}</div>
+        <div style="font-size:13px;color:var(--muted)">${inn.organisation}${inn.sector?' · '+inn.sector:''}${inn.country?' · '+inn.country:''}</div>
+      </div>
+      ${last?`<div class="card g3" style="margin-bottom:14px">
+        <div><div style="font-size:28px;font-weight:800;color:${rl.color}">${last.riskScore}%</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Authenticity Score</div></div>
+        <div><span class="badge ${rl.bc}" style="font-size:13px;padding:5px 12px">${rl.label}</span><div style="font-size:12px;color:var(--muted);margin-top:6px">Last submission: ${new Date(last.date).toLocaleDateString('en-GB')}</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:var(--navy)">L${last.irl||'—'}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">${irlD?irlD.label:'IRL'}</div></div>
+      </div>`:''}
+      <div class="g2" style="margin-bottom:14px">
+        <div class="card" style="border-color:var(--navy);cursor:pointer" onclick="App.startCheckin('${inn.id}')">
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">${last?'Start New Check-In':'Start Application'}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${last?'Complete your next submission. Previous answers shown for reference.':'Fill in all 7 sections of the application form.'}</div>
+          <button class="btn btn-primary btn-sm">Begin</button>
+        </div>
+        ${last?`<div class="card" style="cursor:pointer" onclick="App.viewReport('${last.id}','innovator')">
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">View Last Report</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">See your last submission and any flags raised.</div>
+          <button class="btn btn-secondary btn-sm">View Report</button>
+        </div>`:'<div></div>'}
+      </div>
+      ${cis.length>1?`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">Previous Submissions</div>
+        <div class="tbl-wrap"><table><tr><th>Date</th><th>IRL</th><th>Score</th><th>Status</th><th></th></tr>
+          ${cis.map(ci=>{const r=this.riskLevel(ci.riskScore);return`<tr>
+            <td>${new Date(ci.date).toLocaleDateString('en-GB')}</td>
+            <td>${ci.irl?'Level '+ci.irl:'—'}</td>
+            <td><strong style="color:${r.color}">${ci.riskScore}%</strong></td>
+            <td><span class="badge ${r.bc}">${r.label}</span></td>
+            <td><button class="btn btn-secondary btn-xs" onclick="App.viewReport('${ci.id}','innovator')">View</button></td>
+          </tr>`;}).join('')}
+        </table></div></div>`:''}`;
+  },
+
+  // ── PM HOME ───────────────────────────────────────────────────
+  renderPMHome(){
+    const el=document.getElementById('pm-inn-list');
+    if(!this.S.innovators.length){el.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><h3>No innovators registered yet</h3><p>Click Register to add your first funded innovator.</p></div>`;return;}
+    el.innerHTML=this.S.innovators.map(inn=>{
+      const last=this.lastCheckin(inn.id); const rl=last?this.riskLevel(last.riskScore):null;
+      const days=last?Math.floor((Date.now()-new Date(last.date))/86400000):null;
+      return`<div class="inn-card">
+        <div style="font-size:14px;font-weight:700;color:var(--navy)">${inn.name}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:7px">${inn.organisation}${inn.sector?' · '+inn.sector:''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Code: <strong style="font-family:monospace;color:var(--navy);letter-spacing:.5px">${inn.accessCode||'—'}</strong></div>
+        <div style="margin-bottom:10px">
+          ${rl?`<span class="badge ${rl.bc}">${rl.label}</span>`:'<span class="badge b-gray">Not submitted</span>'}
+          ${days!==null?`<span style="font-size:11px;color:${days>35?'var(--red)':'var(--muted)'};margin-left:7px">${days}d ago${days>35?' — overdue':''}</span>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-xs" onclick="App.startCheckin('${inn.id}')">Check-In</button>
+          ${last?`<button class="btn btn-secondary btn-xs" onclick="App.viewReport('${last.id}','pm')">Report</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  openModal(){ document.getElementById('modal').style.display='flex'; },
+  closeModal(){ document.getElementById('modal').style.display='none'; },
+
+  async saveInnovator(e){
+    e.preventDefault(); const f=e.target;
+    const btn=document.getElementById('save-inn-btn'); btn.disabled=true; btn.textContent='Saving...';
+    const code='ACAII-'+Math.random().toString(36).substring(2,8).toUpperCase();
+    const data={name:f.name.value,organisation:f.org.value,programme:f.programme.value,sector:f.sector.value,country:f.country.value,grant:parseFloat(f.grant.value)||0,email:f.email.value,accessCode:code,createdAt:new Date().toISOString()};
+    try{
+      const id='INN-'+Date.now();
+      await api('',{},{action:'addInnovator',pw:this.S.pmPassword,record:{id,...data}});
+      this.S.innovators.unshift({id,...data});
+      this.closeModal(); this.renderPMHome();
+      alert(`Innovator registered successfully.\n\nAccess Code: ${code}\n\nShare this code and the tool URL with the innovator so they can log in and complete their check-in.`);
+    }catch(ex){ alert('Save failed: '+ex.message); }
+    btn.disabled=false; btn.textContent='Register and Generate Code';
+  },
+
+  // ── WIZARD ────────────────────────────────────────────────────
+  startCheckin(innId){
+    this.S.wizInn=innId; this.S.wizSec=0; this.S.answers={}; this.S.liveFlags={};
+    this.S.irlVal=null; this.S.docChecks={}; this.S.docLinks={};
+    const prev=this.lastCheckin(innId); this.S.prevAnswers=prev?prev.answers||{}:{};
+    this.show('v-wizard'); this.renderSection();
+  },
+
+  wizBack(){
+    if(this.S.role==='innovator'){this.renderInnHome();this.show('v-inn-home');}
+    else{this.pmGo('home');}
+  },
+
+  renderSection(){
+    const sec=SECTIONS[this.S.wizSec]; const cur=this.S.wizSec; const tot=SECTIONS.length;
+    const inn=this.S.innovators.find(i=>i.id===this.S.wizInn)||this.S.currentInn||{name:'',organisation:''};
+    const qOff=SECTIONS.slice(0,cur).reduce((a,s)=>a+s.questions.length,0);
+    const qTot=SECTIONS.reduce((a,s)=>a+s.questions.length,0);
+    document.getElementById('wiz-meta').textContent=inn.name+(inn.organisation?' — '+inn.organisation:'');
+    document.getElementById('wiz-sec-label').textContent=`Section ${cur+1} of ${tot}: ${sec.title}`;
+    document.getElementById('wiz-q-count').textContent=`Questions ${qOff+1}–${qOff+sec.questions.length} of ${qTot}`;
+    document.getElementById('wiz-progress').innerHTML=SECTIONS.map((_,i)=>`<div class="progress-seg ${i<cur?'done':i===cur?'active':''}"></div>`).join('');
+    let qn=qOff;
+    let html=`<div class="card"><div class="sec-label">Section ${cur+1} of ${tot}</div><div class="sec-title">${sec.title}</div><div class="sec-desc">${sec.desc}</div>`;
+    sec.questions.forEach(q=>{
+      qn++; const prev=this.S.prevAnswers[q.id]; const ca=this.S.answers[q.id]||''; const fl=this.S.liveFlags[q.id]||[];
+      html+=`<div class="field" id="field-${q.id}"><label><span class="q-num">${qn}.</span>${q.label}${q.type!=='docs'?` <span style="color:var(--red)">*</span>`:''}</label>`;
+      html+=`<div class="hint">${q.hint}</div>`;
+      if(prev&&q.type!=='docs'&&q.type!=='irl') html+=`<div class="prev-box"><div class="pl">Previous answer</div><div>${this.esc(prev.toString())}</div></div>`;
+      if(q.type==='irl'){
+        const v=this.S.irlVal;
+        html+=`<div class="irl-grid" id="irl-grid">${IRL_LEVELS.map(l=>`<div class="irl-item ${v===l.n?'selected':''}" onclick="App.setIRL(${l.n})"><div class="irl-n">${l.n}</div><div class="irl-l">${l.label}</div></div>`).join('')}</div>`;
+        if(v){const d=IRL_LEVELS.find(l=>l.n===v);html+=`<div style="margin-top:6px;font-size:12px;color:var(--muted)">Level ${v} — ${d?.desc}</div>`;}
+        html+=`<div id="ni-q1a"></div>`;
+      } else if(q.type==='number'){
+        const pn=prev?parseFloat(prev):null;
+        html+=`<div style="display:flex;align-items:center;gap:10px"><input type="number" id="inp-${q.id}" value="${ca}" min="0" style="max-width:200px" oninput="App.onInput('${q.id}',this.value,'number')">${q.isCurrency?'<span style="font-size:12px;color:var(--muted)">USD</span>':''}</div>`;
+        if(pn!==null&&ca!==''){const n=parseFloat(ca);html+=`<div style="margin-top:3px"><span class="${n>=pn?'cmp-up':'cmp-dn'}">${n>=pn?'Up from':'Down from'} previous: ${pn.toLocaleString()}</span></div>`;}
+        html+=`<div id="ni-${q.id}"></div>`;
+      } else if(q.type==='docs'){
+        html+=this.renderDocsField();
+      } else {
+        html+=`<textarea id="inp-${q.id}" oninput="App.onInput('${q.id}',this.value,'text')" placeholder="Provide a specific, evidenced answer...">${ca}</textarea>`;
+        html+=`<div class="char-info ${ca.length<(q.minLen||0)?'short':''}" id="cc-${q.id}">${ca.length} / ${q.minLen||0} minimum characters</div>`;
+        html+=`<div id="ni-${q.id}">${this.renderNotices(fl)}</div>`;
+      }
+      html+=`</div>`;
+    });
+    html+=`<div class="nav-row">
+      <button class="btn btn-secondary" onclick="App.wizPrev()" ${cur===0?'disabled':''}>Previous</button>
+      <div style="font-size:12px;color:var(--muted)">${cur+1} / ${tot}</div>
+      ${cur<tot-1?`<button class="btn btn-primary" onclick="App.wizNext()">Next Section</button>`:`<button class="btn btn-success" onclick="App.submitCheckin()">Submit and Generate Report</button>`}
+    </div></div>`;
+    document.getElementById('wiz-body').innerHTML=html;
+    sec.questions.forEach(q=>{if(this.S.answers[q.id]&&q.type!=='docs'&&q.type!=='irl') this.onInput(q.id,this.S.answers[q.id],q.type==='number'?'number':'text');});
+    window.scrollTo(0,0);
+  },
+
+  renderDocsField(){
+    return`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:26px 1fr 90px 170px;background:var(--light);padding:8px 11px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border-bottom:1px solid var(--border)">
+        <span></span><span>Document</span><span>Status</span><span>Link / Reference</span>
+      </div>
+      ${DOCS.map(d=>`<div class="doc-item">
+        <div class="doc-check ${this.S.docChecks[d.id]?'checked':''}" onclick="App.toggleDoc('${d.id}')">${this.S.docChecks[d.id]?'&#10003;':''}</div>
+        <div style="font-size:13px">${d.name}</div>
+        <div><span class="badge ${d.required?'b-red':'b-gray'}">${d.required?'Required':'Optional'}</span></div>
+        <input class="doc-link-input" type="text" placeholder="URL or filename" value="${this.S.docLinks[d.id]||''}" oninput="App.setDocLink('${d.id}',this.value)">
+      </div>`).join('')}
+    </div>`;
+  },
+
+  toggleDoc(id){
+    this.S.docChecks[id]=!this.S.docChecks[id];
+    const el=document.querySelector(`.doc-check[onclick="App.toggleDoc('${id}')"]`);
+    if(el){el.classList.toggle('checked',!!this.S.docChecks[id]);el.innerHTML=this.S.docChecks[id]?'&#10003;':'';}
+  },
+  setDocLink(id,val){this.S.docLinks[id]=val;},
+
+  setIRL(n){
+    this.S.irlVal=n; this.S.answers['q1a']=n;
+    document.querySelectorAll('.irl-item').forEach((el,i)=>el.classList.toggle('selected',i===n-1));
+    const ni=document.getElementById('ni-q1a');
+    if(ni){
+      if(n<=3) ni.innerHTML=`<div class="notice err">Level ${n} — stage too early for scaling funding. Consider a development grant first.</div>`;
+      else if(n===4) ni.innerHTML=`<div class="notice warn">Level 4 — borderline for scaling funding. Strong evidence of user validation is required.</div>`;
+      else ni.innerHTML=`<div class="notice ok">Level ${n} — appropriate for scaling funding.</div>`;
+    }
+  },
+
+  onInput(qId,val,type){
+    this.S.answers[qId]=val;
+    const q=this.findQ(qId); if(!q) return;
+    const flags=this.analyzeAnswer(q,val); this.S.liveFlags[qId]=flags;
+    const inp=document.getElementById('inp-'+qId);
+    if(inp){['f-ok','f-warn','f-bad'].forEach(c=>inp.classList.remove(c));
+      const worst=flags.find(f=>f.level==='err')||flags.find(f=>f.level==='warn');
+      const ok=!worst&&val.length>=(q.minLen||1)&&val.length>0;
+      if(worst?.level==='err') inp.classList.add('f-bad');
+      else if(worst?.level==='warn') inp.classList.add('f-warn');
+      else if(ok) inp.classList.add('f-ok');}
+    const cc=document.getElementById('cc-'+qId);
+    if(cc){cc.textContent=`${val.length} / ${q.minLen||0} minimum characters`;cc.className='char-info'+(val.length<(q.minLen||0)?' short':'');}
+    const ni=document.getElementById('ni-'+qId);
+    if(ni) ni.innerHTML=this.renderNotices(flags);
+  },
+
+  analyzeAnswer(q,val){
+    const v=val.toString().trim(); const flags=[];
+    if(!v){flags.push({level:'err',msg:'This field is required.'});return flags;}
+    if(q.minLen&&v.length<q.minLen) flags.push({level:'err',msg:`Too short. Minimum ${q.minLen} characters, currently ${v.length}. Add specific detail.`});
+    if(q.redFlags) q.redFlags.forEach(rf=>{if(v.toLowerCase().includes(rf)) flags.push({level:'err',msg:`Flagged phrase: "${rf}" — too vague. Provide specific evidence.`});});
+    VAGUE.forEach(({re,msg})=>{if(re.test(v)) flags.push({level:'warn',msg});});
+    if(q.type==='number'){
+      const num=parseFloat(v); const pStr=this.S.prevAnswers?.[q.id]; const pn=pStr?parseFloat(pStr):null;
+      if(pn!==null&&!isNaN(num)&&pn>0&&num<pn*0.5) flags.push({level:'err',msg:`Number dropped ${Math.round((1-num/pn)*100)}% since last submission (${pn.toLocaleString()} → ${num.toLocaleString()}). An unexplained drop of this size is a critical flag.`});
+      if(!isNaN(num)&&num===0&&q.tracksChange) flags.push({level:'warn',msg:'Zero reported. Explain why in an adjacent field.'});
+    }
+    if(!flags.length) flags.push({level:'ok',msg:'Answer meets the minimum requirements.'});
+    return flags;
+  },
+
+  renderNotices(flags){
+    const show=flags.filter(f=>f.level!=='ok').slice(0,2);
+    if(!show.length&&flags.some(f=>f.level==='ok')) return`<div class="notice ok">${flags[0].msg}</div>`;
+    return show.map(f=>`<div class="notice ${f.level==='err'?'err':'warn'}">${f.msg}</div>`).join('');
+  },
+
+  wizNext(){
+    const sec=SECTIONS[this.S.wizSec]; let bad=false;
+    sec.questions.forEach(q=>{
+      if(q.type==='irl'){if(!this.S.irlVal){bad=true;const g=document.getElementById('irl-grid');if(g)g.style.outline='2px solid var(--red)';}}
+      else if(q.type==='docs'){return;}
+      else{const v=this.S.answers[q.id]||'';if(!v||v.length<(q.minLen||1)){bad=true;const inp=document.getElementById('inp-'+q.id);if(inp){inp.classList.add('f-bad');inp.scrollIntoView({behavior:'smooth',block:'center'});}}}
+    });
+    if(bad){alert('Please complete all required fields before continuing.');return;}
+    this.S.wizSec++; this.renderSection();
+  },
+  wizPrev(){if(this.S.wizSec>0){this.S.wizSec--;this.renderSection();}},
+
+  // ── SUBMIT ────────────────────────────────────────────────────
+  async submitCheckin(){
+    const riskScore=this.calcRisk(this.S.answers);
+    const allFlags=this.getAllFlags(this.S.answers);
+    const sectionScores=this.getSectionScores(this.S.answers);
+    const missingDocs=DOCS.filter(d=>d.required&&!this.S.docChecks[d.id]).map(d=>d.name);
+    const id='CI-'+Date.now();
+    const data={id,innovatorId:this.S.wizInn,date:new Date().toISOString(),answers:{...this.S.answers},riskScore,allFlags,sectionScores,irl:this.S.irlVal,docChecks:{...this.S.docChecks},docLinks:{...this.S.docLinks},missingDocs,submittedBy:this.S.role==='pm'?'pm':'innovator'};
+    this.loading(true,'Saving submission...');
+    try{
+      await api('',{},{action:'addCheckin',record:data});
+      this.S.checkins.unshift(data); this.S.lastCiId=id;
+      this.loading(false);
+      if(this.S.role==='innovator'){
+        const rl=this.riskLevel(riskScore);
+        document.getElementById('thanks-msg').innerHTML='Your submission has been received by ACAII.<br>Your programme manager will review it and be in touch within 7 days.';
+        document.getElementById('thanks-score').innerHTML=`<div style="display:inline-block;padding:16px 24px;border:1px solid var(--border);border-radius:6px"><div style="font-size:36px;font-weight:800;color:${rl.color}">${riskScore}%</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Authenticity Score</div><span class="badge ${rl.bc}" style="margin-top:7px;display:inline-block">${rl.label}</span></div>`;
+        document.getElementById('thanks-report-btn').onclick=()=>this.viewReport(id,'innovator');
+        this.show('v-thanks');
+      } else { this.viewReport(id,'pm'); }
+    }catch(ex){this.loading(false);alert('Submission failed: '+ex.message);}
+  },
+
+  // ── REPORT ────────────────────────────────────────────────────
+  viewReport(ciId,from){
+    const ci=this.S.checkins.find(c=>c.id===ciId); if(!ci){alert('Not found.');return;}
+    const inn=this.S.innovators.find(i=>i.id===ci.innovatorId)||this.S.currentInn||{name:'Unknown',organisation:''};
+    const rl=this.riskLevel(ci.riskScore);
+    const hi=(ci.allFlags||[]).filter(f=>f.level==='err');
+    const wa=(ci.allFlags||[]).filter(f=>f.level==='warn');
+    const irlD=IRL_LEVELS.find(l=>l.n===ci.irl);
+    const backFn=from==='innovator'?`App.renderInnHome();App.show('v-inn-home')`:`App.pmGo('history')`;
+    document.getElementById('report-back-btn').onclick=new Function(backFn);
+
+    let html=`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div>
+          <div class="sec-label">Submission Report</div>
+          <div style="font-size:19px;font-weight:700;color:var(--navy)">${inn.name}</div>
+          <div style="font-size:13px;color:var(--muted)">${inn.organisation} · ${new Date(ci.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+        </div>
+        <span class="badge ${rl.bc}" style="font-size:13px;padding:5px 13px">${rl.label}</span>
+      </div>
+      <div class="g3">
+        <div class="score-block">
+          <div class="score-num" style="color:${rl.color}">${ci.riskScore}%</div>
+          <div class="risk-bar"><div class="risk-fill" style="width:${ci.riskScore}%;background:${rl.color}"></div></div>
+          <div style="font-size:12px;color:var(--muted)">Authenticity Score</div>
+        </div>
+        <div class="score-block">
+          <div class="score-num" style="color:var(--red)">${hi.length}</div>
+          <div style="font-size:12px;color:var(--muted)">Critical flags</div>
+          <div style="margin-top:8px"><span style="font-size:28px;font-weight:800;color:#D97706">${wa.length}</span> <span style="font-size:12px;color:var(--muted)">Warnings</span></div>
+        </div>
+        <div class="score-block">
+          <div style="font-size:28px;font-weight:800;color:var(--navy)">Level ${ci.irl||'—'}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${irlD?irlD.label+' — '+irlD.desc:'Not assessed'}</div>
+          ${ci.irl&&ci.irl<=3?`<div class="notice err" style="margin-top:6px">Stage too early for scaling funding</div>`:''}
+          ${ci.irl===4?`<div class="notice warn" style="margin-top:6px">Borderline — strong evidence required</div>`:''}
+          ${ci.irl&&ci.irl>=5?`<div class="notice ok" style="margin-top:6px">Appropriate for scaling funding</div>`:''}
+        </div>
+      </div>
+    </div>
+    <div style="background:${rl.bg};border:1px solid ${rl.color}55;border-radius:6px;padding:15px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:${rl.color};margin-bottom:4px">Programme Manager Action</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">${rl.action}</div>
+      <div style="font-size:13px">${rl.detail}</div>
+    </div>`;
+
+    html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">Section Scores</div><div class="g2">`;
+    SECTIONS.forEach(sec=>{const ss=ci.sectionScores?.[sec.id]??0;const c=ss>=75?'var(--green)':ss>=50?'#D97706':'var(--red)';
+      html+=`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="font-weight:600">${sec.title}</span><span style="color:${c};font-weight:700">${ss}%</span></div><div class="risk-bar"><div class="risk-fill" style="width:${ss}%;background:${c}"></div></div></div>`;
+    });
+    html+=`</div></div>`;
+
+    if(hi.length){html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:10px">Critical Flags (${hi.length})</div>`;hi.forEach(f=>html+=`<div class="flag critical"><div class="flag-section">${f.section}</div><div class="flag-msg">${f.msg}</div><div class="flag-q">${f.qLabel}</div></div>`);html+=`</div>`;}
+    if(wa.length){html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:#D97706;margin-bottom:10px">Warnings (${wa.length})</div>`;wa.slice(0,8).forEach(f=>html+=`<div class="flag warning"><div class="flag-section">${f.section}</div><div class="flag-msg">${f.msg}</div><div class="flag-q">${f.qLabel}</div></div>`);html+=`</div>`;}
+    if(ci.missingDocs?.length){html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:10px">Missing Required Documents (${ci.missingDocs.length})</div>`;ci.missingDocs.forEach(d=>html+=`<div style="font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)">${d}</div>`);html+=`</div>`;}
+
+    html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:14px">Full Submission</div>`;
+    SECTIONS.forEach(sec=>{
+      html+=`<div class="section-group"><div class="section-group-title">${sec.title}</div>`;
+      sec.questions.forEach(q=>{
+        if(q.type==='irl'){html+=`<div class="answer-block"><div class="answer-q">Innovation Readiness Level</div><div class="answer-a">Level ${ci.irl||'Not selected'} — ${IRL_LEVELS.find(l=>l.n===ci.irl)?.label||''}</div></div>`;return;}
+        if(q.type==='docs') return;
+        const ans=(ci.answers[q.id]||'').toString();
+        const qfl=(ci.allFlags||[]).filter(f=>f.qId===q.id&&f.level!=='ok');
+        html+=`<div class="answer-block"><div class="answer-q">${q.label}</div>
+          <div class="answer-a ${qfl.some(f=>f.level==='err')?'flagged':qfl.length?'warned':''}">${this.esc(ans)||'<em>No answer provided</em>'}</div>
+          ${qfl.map(f=>`<div class="notice ${f.level==='err'?'err':'warn'}" style="margin-top:4px">${f.msg}</div>`).join('')}
+        </div>`;
+      });
+      html+=`</div>`;
+    });
+    html+=`<div class="section-group"><div class="section-group-title">Documents</div>`;
+    DOCS.forEach(d=>{const ch=ci.docChecks?.[d.id];const lk=ci.docLinks?.[d.id];
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:700;color:${ch?'var(--green)':'var(--red)'};min-width:28px">${ch?'Yes':'No'}</span>
+        <span style="flex:1;font-size:13px">${d.name}</span>
+        <span class="badge ${d.required?'b-red':'b-gray'}">${d.required?'Required':'Optional'}</span>
+        ${lk?`<span style="font-size:11px;color:var(--muted)">${this.esc(lk)}</span>`:''}
+      </div>`;
+    });
+    html+=`</div></div>`;
+
+    document.getElementById('report-body').innerHTML=html;
+    this.show('v-report'); window.scrollTo(0,0);
+  },
+
+  // ── HISTORY ───────────────────────────────────────────────────
+  renderHistory(){
+    const el=document.getElementById('history-body');
+    if(!this.S.checkins.length){el.innerHTML=`<div class="empty-state"><h3>No submissions yet</h3></div>`;return;}
+    el.innerHTML=`<div class="tbl-wrap"><table>
+      <tr><th>Date</th><th>Innovator</th><th>IRL</th><th>Score</th><th>Status</th><th>Flags</th><th>Missing Docs</th><th>By</th><th></th></tr>
+      ${[...this.S.checkins].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(ci=>{
+        const inn=this.S.innovators.find(i=>i.id===ci.innovatorId)||{name:'Unknown'};
+        const rl=this.riskLevel(ci.riskScore); const hi=(ci.allFlags||[]).filter(f=>f.level==='err').length; const md=ci.missingDocs?.length||0;
+        return`<tr>
+          <td style="font-size:12px">${new Date(ci.date).toLocaleDateString('en-GB')}</td>
+          <td><strong>${inn.name}</strong></td>
+          <td><span class="badge b-navy">L${ci.irl||'?'}</span></td>
+          <td><strong style="color:${rl.color}">${ci.riskScore}%</strong></td>
+          <td><span class="badge ${rl.bc}">${rl.label}</span></td>
+          <td>${hi?`<span class="badge b-red">${hi}</span>`:'—'}</td>
+          <td>${md?`<span class="badge b-amber">${md}</span>`:'—'}</td>
+          <td style="font-size:11px;color:var(--muted)">${ci.submittedBy||'—'}</td>
+          <td><button class="btn btn-primary btn-xs" onclick="App.viewReport('${ci.id}','pm')">View</button></td>
+        </tr>`;
+      }).join('')}
+    </table></div>`;
+  },
+
+  // ── DASHBOARD ─────────────────────────────────────────────────
+  renderDashboard(){
+    const el=document.getElementById('dashboard-body');
+    const withData=this.S.innovators.map(i=>({inn:i,last:this.lastCheckin(i.id)})).filter(x=>x.last);
+    const avg=withData.length?Math.round(withData.reduce((a,x)=>a+x.last.riskScore,0)/withData.length):0;
+    const crit=withData.filter(x=>x.last.riskScore<50).length;
+    const notsub=this.S.innovators.filter(i=>!this.lastCheckin(i.id)).length;
+    const flags=withData.reduce((a,x)=>a+(x.last.allFlags||[]).filter(f=>f.level==='err').length,0);
+    el.innerHTML=`
+    <div style="padding:18px 0 10px"><div style="font-size:18px;font-weight:700;color:var(--navy)">Portfolio Risk Dashboard</div><div style="font-size:13px;color:var(--muted);margin-top:3px">Based on the latest submission for each innovator</div></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px">
+      <div class="card" style="border-left:3px solid var(--navy)"><div style="font-size:28px;font-weight:800;color:var(--navy)">${avg}%</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Average Score</div></div>
+      <div class="card" style="border-left:3px solid var(--red)"><div style="font-size:28px;font-weight:800;color:var(--red)">${crit}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">High-Risk Innovators</div></div>
+      <div class="card" style="border-left:3px solid #D97706"><div style="font-size:28px;font-weight:800;color:var(--navy)">${flags}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Critical Flags (total)</div></div>
+      <div class="card" style="border-left:3px solid var(--muted)"><div style="font-size:28px;font-weight:800;color:var(--navy)">${notsub}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Not Yet Submitted</div></div>
+    </div>
+    <div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">All Innovators</div>
+    <div class="tbl-wrap"><table>
+      <tr><th>Innovator</th><th>Organisation</th><th>Access Code</th><th>IRL</th><th>Score</th><th>Status</th><th>Flags</th><th>Days since submission</th><th></th></tr>
+      ${this.S.innovators.map(inn=>{
+        const last=this.lastCheckin(inn.id);const rl=last?this.riskLevel(last.riskScore):null;
+        const hi=last?(last.allFlags||[]).filter(f=>f.level==='err').length:0;
+        const days=last?Math.floor((Date.now()-new Date(last.date))/86400000):null;
+        return`<tr>
+          <td><strong>${inn.name}</strong></td><td>${inn.organisation}</td>
+          <td style="font-family:monospace;font-size:12px;color:var(--muted)">${inn.accessCode||'—'}</td>
+          <td>${last?`<span class="badge b-navy">L${last.irl||'?'}</span>`:'—'}</td>
+          <td>${rl?`<strong style="color:${rl.color}">${last.riskScore}%</strong>`:'—'}</td>
+          <td>${rl?`<span class="badge ${rl.bc}">${rl.label}</span>`:'<span class="badge b-gray">Pending</span>'}</td>
+          <td>${hi?`<span class="badge b-red">${hi}</span>`:'—'}</td>
+          <td style="font-size:12px;color:${days>35?'var(--red)':'var(--muted)'}">${days!==null?days+'d'+(days>35?' — overdue':''):'Never'}</td>
+          <td style="display:flex;gap:5px">
+            <button class="btn btn-primary btn-xs" onclick="App.startCheckin('${inn.id}')">Check-In</button>
+            ${last?`<button class="btn btn-secondary btn-xs" onclick="App.viewReport('${last.id}','pm')">Report</button>`:''}
+          </td>
+        </tr>`;
+      }).join('')}
+    </table></div></div>`;
+  },
+
+  // ── SCORING ───────────────────────────────────────────────────
+  calcRisk(ans){
+    let tot=0,mx=0;
+    SECTIONS.forEach(sec=>sec.questions.forEach(q=>{
+      if(q.type==='docs'||q.type==='irl') return; mx+=q.weight*3;
+      const v=(ans[q.id]||'').toString().trim(); const fl=this.analyzeAnswer(q,v);
+      const hi=fl.filter(f=>f.level==='err').length,mi=fl.filter(f=>f.level==='warn').length;
+      tot+=q.weight*(fl.some(f=>f.level==='ok')&&!hi&&!mi?3:hi?0:mi?1:2);
+    }));
+    return mx?Math.round((tot/mx)*100):0;
+  },
+  getSectionScores(ans){
+    const s={};
+    SECTIONS.forEach(sec=>{let t=0,m=0;
+      sec.questions.forEach(q=>{if(q.type==='docs'||q.type==='irl') return;m+=q.weight*3;
+        const v=(ans[q.id]||'').toString().trim();const fl=this.analyzeAnswer(q,v);
+        const hi=fl.filter(f=>f.level==='err').length,mi=fl.filter(f=>f.level==='warn').length;
+        t+=q.weight*(fl.some(f=>f.level==='ok')&&!hi&&!mi?3:hi?0:mi?1:2);
+      });
+      s[sec.id]=m?Math.round((t/m)*100):0;
+    });
+    return s;
+  },
+  getAllFlags(ans){
+    const flags=[];
+    SECTIONS.forEach(sec=>sec.questions.forEach(q=>{
+      if(q.type==='docs'||q.type==='irl') return;
+      const v=(ans[q.id]||'').toString().trim();
+      this.analyzeAnswer(q,v).filter(f=>f.level!=='ok').forEach(f=>flags.push({...f,qId:q.id,qLabel:q.label,section:sec.title}));
+    }));
+    return flags;
+  },
+  riskLevel(score){
+    if(score>=80) return{label:'Low Risk',bc:'b-green',color:'var(--green)',bg:'var(--green-bg)',action:'Continue standard support.',detail:'Submission is credible and specific. Schedule next check-in in 30 days.'};
+    if(score>=65) return{label:'Moderate Concern',bc:'b-blue',color:'#1D4ED8',bg:'#EFF6FF',action:'Follow up within 7 days.',detail:'Some answers lack specificity. Request documented evidence for flagged items before releasing next tranche.'};
+    if(score>=50) return{label:'High Risk',bc:'b-amber',color:'#B45309',bg:'var(--amber-bg)',action:'Do not release next tranche. Senior review required.',detail:'Multiple vague or suspicious answers. Require a face-to-face meeting with documented evidence for all flagged sections.'};
+    return{label:'Critical Risk',bc:'b-red',color:'var(--red)',bg:'var(--red-bg)',action:'Suspend funding immediately. Launch formal investigation.',detail:'Severe authenticity concerns. Do not release any further funds. Request bank statements, receipts, and a live product demonstration within 72 hours.'};
+  },
+  findQ(id){for(const s of SECTIONS) for(const q of s.questions) if(q.id===id) return q;return null;},
+  lastCheckin(id){const c=this.S.checkins.filter(x=>x.innovatorId===id);return c.length?c.sort((a,b)=>new Date(b.date)-new Date(a.date))[0]:null;},
+  esc(s){return s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
+};
+
+window.addEventListener('DOMContentLoaded',()=>App.init());
+</script>
+</body>
+</html>
