@@ -1115,13 +1115,27 @@ const App={
     const msg=document.getElementById('cfg-msg'); msg.style.display='none';
   },
 
-  normaliseDriveUrl(url){
-    // Convert any Google Drive share link to a direct embeddable URL
+  extractDriveFileId(url){
     const m=url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
-    // Also handle /open?id= format
+    if(m) return m[1];
     const m2=url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
+    if(m2) return m2[1];
+    return null;
+  },
+
+  extractDriveFolderId(url){
+    // Accept raw ID or full URL like drive.google.com/drive/folders/ID
+    const m=url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    if(m) return m[1];
+    // If it looks like a plain ID already (no slashes, no dots), return as-is
+    if(/^[a-zA-Z0-9_-]{10,}$/.test(url.trim())) return url.trim();
+    return url;
+  },
+
+  normaliseDriveUrl(url){
+    if(!url) return url;
+    const id=this.extractDriveFileId(url);
+    if(id) return 'https://drive.google.com/thumbnail?id='+id+'&sz=w400';
     return url;
   },
 
@@ -1132,7 +1146,22 @@ const App={
       const resolved=this.normaliseDriveUrl(url);
       wrap.style.display='block';
       img.src=resolved;
-      img.onerror=()=>{img.alt='Could not load image — check the URL and sharing settings';};
+      img.onerror=()=>{
+        // fallback to lh3 format
+        const id=this.extractDriveFileId(url);
+        if(id&&img.src!=='https://lh3.googleusercontent.com/d/'+id){
+          img.src='https://lh3.googleusercontent.com/d/'+id;
+        } else {
+          img.alt='Image could not load. Make sure the file is shared as "Anyone with the link" in Google Drive.';
+          img.src='';
+          wrap.style.background='#FFF3CD';
+          wrap.style.padding='8px';
+          wrap.style.borderRadius='4px';
+          wrap.style.fontSize='12px';
+          wrap.style.color='#856404';
+          wrap.innerHTML='<span>&#9888; Image could not load. In Google Drive, right-click the logo → Share → change to <strong>Anyone with the link</strong>, then paste the URL again.</span>';
+        }
+      };
     } else { wrap.style.display='none'; }
   },
 
@@ -1141,7 +1170,7 @@ const App={
     const btn=document.getElementById('save-cfg-btn'); btn.disabled=true; btn.textContent='Saving...';
     const pmEmail=document.getElementById('cfg-pm-email').value.trim();
     const toolUrl=document.getElementById('cfg-tool-url').value.trim();
-    const driveFolderId=document.getElementById('cfg-drive-folder').value.trim();
+    const driveFolderId=this.extractDriveFolderId(document.getElementById('cfg-drive-folder').value.trim());
     const logoUrl=this.normaliseDriveUrl(document.getElementById('cfg-logo-url').value.trim());
     const msg=document.getElementById('cfg-msg');
     try{
