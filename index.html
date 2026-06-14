@@ -122,6 +122,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
         <button class="hn active" onclick="App.pmGo('home')">Innovators</button>
         <button class="hn" onclick="App.pmGo('history')">Submissions</button>
         <button class="hn" onclick="App.pmGo('dashboard')">Dashboard</button>
+        <button class="hn" onclick="App.pmGo('settings')">Settings</button>
       </nav>
       <span style="font-size:12px;color:rgba(255,255,255,.4);margin:0 6px">|</span>
       <span id="pm-email-lbl" style="font-size:11px;color:rgba(255,255,255,.55)"></span>
@@ -208,9 +209,16 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
 <div id="v-pm-home" class="view">
   <div class="container">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="font-size:14px;font-weight:700;color:var(--navy)">Registered Innovators</div>
-        <button class="btn btn-primary btn-sm" onclick="App.openModal()">Register New Innovator</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:14px;font-weight:700;color:var(--navy)">Registered Innovators
+          <label style="font-size:11px;font-weight:400;color:var(--muted);margin-left:12px;cursor:pointer">
+            <input type="checkbox" id="show-archived" style="width:auto;margin-right:4px" onchange="App.renderPMHome()"> Show archived
+          </label>
+        </div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-secondary btn-sm" onclick="App.exportCSV()">Export CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="App.openModal()">Register New Innovator</button>
+        </div>
       </div>
       <div class="inn-list" id="pm-inn-list"></div>
     </div>
@@ -309,6 +317,72 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
         <button type="submit" class="btn btn-primary btn-sm" id="save-inn-btn">Register and Generate Code</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL: EDIT INNOVATOR -->
+<div id="modal-edit" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;align-items:center;justify-content:center" onclick="if(event.target.id==='modal-edit')App.closeEditModal()">
+  <div style="background:#fff;border-radius:6px;padding:26px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:700;color:var(--navy)">Edit Innovator Details</div>
+      <button onclick="App.closeEditModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">&#215;</button>
+    </div>
+    <form onsubmit="App.saveEditInnovator(event)">
+      <div class="field-row">
+        <div class="field"><label>Innovation Name *</label><input type="text" id="edit-name" required></div>
+        <div class="field"><label>Organisation *</label><input type="text" id="edit-org" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Programme</label>
+          <select id="edit-programme"><option value="">Select...</option>
+            <option>UK-Kenya AI Challenge Fund</option><option>AI4D SRAIS Mentorship</option>
+            <option>AI4D Scholarship</option><option>AMR Hub</option><option>Other</option>
+          </select></div>
+        <div class="field"><label>Sector</label>
+          <select id="edit-sector"><option value="">Select...</option>
+            <option>Agriculture</option><option>Health</option><option>Education</option>
+            <option>Climate</option><option>Gender and Inclusion</option><option>Financial Inclusion</option><option>Other</option>
+          </select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Country</label><input type="text" id="edit-country" placeholder="e.g. Kenya"></div>
+        <div class="field"><label>Grant Amount (USD)</label><input type="number" id="edit-grant" placeholder="75000"></div>
+      </div>
+      <div class="field"><label>Contact Email</label><input type="email" id="edit-email" placeholder="lead@example.com"></div>
+      <input type="hidden" id="edit-inn-id">
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="App.closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="save-edit-btn">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="v-settings" class="view">
+  <div class="container">
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:16px">Platform Settings</div>
+      <form onsubmit="App.saveConfig(event)">
+        <div class="field">
+          <label>Programme Manager Email</label>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:5px">All innovator welcome emails and check-in notifications are CC'd to this address.</div>
+          <input type="email" id="cfg-pm-email" placeholder="pm@acaii.org">
+        </div>
+        <div class="field">
+          <label>Check-In Tool URL (GitHub Pages)</label>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:5px">Included in all emails sent to innovators so they can access the tool.</div>
+          <input type="url" id="cfg-tool-url" placeholder="https://your-username.github.io/acaii-checkin-tool/">
+        </div>
+        <div style="font-size:12px;color:var(--muted);background:var(--light);border:1px solid var(--border);padding:11px;border-radius:4px;margin-bottom:14px">
+          These settings are stored securely in Google Apps Script Script Properties. You can also set them directly there: open your Sheet &gt; Extensions &gt; Apps Script &gt; gear icon (Project Settings) &gt; Script properties.
+        </div>
+        <div id="cfg-msg" style="display:none;margin-bottom:12px"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button type="submit" class="btn btn-primary btn-sm" id="save-cfg-btn">Save Settings</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -465,7 +539,7 @@ const VAGUE=[
 const App={
   S:{role:null,pmPassword:null,currentInn:null,wizInn:null,wizSec:0,
      answers:{},liveFlags:{},prevAnswers:{},docChecks:{},docLinks:{},irlVal:null,
-     innovators:[],checkins:[],lastCiId:null},
+     innovators:[],checkins:[],lastCiId:null,editInn:null,pmConfig:{pmEmail:'',toolUrl:''}},
 
   // ── INIT ──────────────────────────────────────────────────────
   init(){
@@ -515,19 +589,24 @@ const App={
 
   async initPM(){
     this.loading(true,'Loading portfolio...');
-    document.getElementById('pm-email-lbl').textContent='Programme Manager';
     await this.loadAll();
+    try{
+      const cfg=await api('getConfig',{pw:this.S.pmPassword});
+      this.S.pmConfig={pmEmail:cfg.pmEmail||'',toolUrl:cfg.toolUrl||''};
+      document.getElementById('pm-email-lbl').textContent=cfg.pmEmail||'Programme Manager';
+    }catch(_){ document.getElementById('pm-email-lbl').textContent='Programme Manager'; }
     this.loading(false);
     this.pmGo('home');
   },
 
   pmGo(page){
-    const map={home:'v-pm-home',history:'v-history',dashboard:'v-dashboard'};
+    const map={home:'v-pm-home',history:'v-history',dashboard:'v-dashboard',settings:'v-settings'};
     this.show(map[page]||'v-pm-home');
-    document.querySelectorAll('#pm-nav .hn').forEach((b,i)=>b.classList.toggle('active',['home','history','dashboard'][i]===page));
+    document.querySelectorAll('#pm-nav .hn').forEach((b,i)=>b.classList.toggle('active',['home','history','dashboard','settings'][i]===page));
     if(page==='home') this.renderPMHome();
     if(page==='history') this.renderHistory();
     if(page==='dashboard') this.renderDashboard();
+    if(page==='settings') this.renderSettings();
   },
 
   // ── DATA ──────────────────────────────────────────────────────
@@ -612,21 +691,34 @@ const App={
   // ── PM HOME ───────────────────────────────────────────────────
   renderPMHome(){
     const el=document.getElementById('pm-inn-list');
-    if(!this.S.innovators.length){el.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><h3>No innovators registered yet</h3><p>Click Register to add your first funded innovator.</p></div>`;return;}
-    el.innerHTML=this.S.innovators.map(inn=>{
+    const showArchived=document.getElementById('show-archived')?.checked;
+    const visible=this.S.innovators.filter(i=>showArchived?true:!i.archived);
+    if(!visible.length){
+      el.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><h3>${this.S.innovators.length?'No active innovators':'No innovators registered yet'}</h3><p>${this.S.innovators.length?'All innovators are archived. Tick "Show archived" to view them.':'Click Register to add your first funded innovator.'}</p></div>`;
+      return;
+    }
+    el.innerHTML=visible.map(inn=>{
       const last=this.lastCheckin(inn.id); const rl=last?this.riskLevel(last.riskScore):null;
       const days=last?Math.floor((Date.now()-new Date(last.date))/86400000):null;
-      return`<div class="inn-card">
-        <div style="font-size:14px;font-weight:700;color:var(--navy)">${inn.name}</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:7px">${inn.organisation}${inn.sector?' · '+inn.sector:''}</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Code: <strong style="font-family:monospace;color:var(--navy);letter-spacing:.5px">${inn.accessCode||'—'}</strong></div>
+      const archived=inn.archived;
+      return`<div class="inn-card" style="${archived?'opacity:.5;':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="font-size:14px;font-weight:700;color:var(--navy)">${this.esc(inn.name)}</div>
+          ${archived?'<span class="badge b-gray">Archived</span>':''}
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:7px">${this.esc(inn.organisation||'')}${inn.sector?' · '+inn.sector:''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Code: <strong style="font-family:monospace;color:var(--navy);letter-spacing:.5px">${inn.accessCode||'—'}</strong></div>
+        ${inn.email?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">${this.esc(inn.email)}</div>`:'<div style="margin-bottom:8px"></div>'}
         <div style="margin-bottom:10px">
           ${rl?`<span class="badge ${rl.bc}">${rl.label}</span>`:'<span class="badge b-gray">Not submitted</span>'}
           ${days!==null?`<span style="font-size:11px;color:${days>35?'var(--red)':'var(--muted)'};margin-left:7px">${days}d ago${days>35?' — overdue':''}</span>`:''}
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-primary btn-xs" onclick="App.startCheckin('${inn.id}')">Check-In</button>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${!archived?`<button class="btn btn-primary btn-xs" onclick="App.startCheckin('${inn.id}')">Check-In</button>`:''}
           ${last?`<button class="btn btn-secondary btn-xs" onclick="App.viewReport('${last.id}','pm')">Report</button>`:''}
+          <button class="btn btn-secondary btn-xs" onclick="App.openEditModal('${inn.id}')">Edit</button>
+          ${!archived?`<button class="btn btn-secondary btn-xs" onclick="App.sendReminder('${inn.id}')">Remind</button>`:''}
+          ${!archived?`<button class="btn btn-secondary btn-xs" style="color:var(--red)" onclick="App.archiveInnovator('${inn.id}')">Archive</button>`:''}
         </div>
       </div>`;
     }).join('');
@@ -635,6 +727,117 @@ const App={
   openModal(){ document.getElementById('modal').style.display='flex'; },
   closeModal(){ document.getElementById('modal').style.display='none'; },
 
+  openEditModal(innId){
+    const inn=this.S.innovators.find(i=>i.id===innId); if(!inn) return;
+    this.S.editInn=inn;
+    document.getElementById('edit-inn-id').value=inn.id;
+    document.getElementById('edit-name').value=inn.name||'';
+    document.getElementById('edit-org').value=inn.organisation||'';
+    document.getElementById('edit-email').value=inn.email||'';
+    document.getElementById('edit-country').value=inn.country||'';
+    document.getElementById('edit-grant').value=inn.grant||'';
+    const progSel=document.getElementById('edit-programme');
+    for(const opt of progSel.options) opt.selected=opt.value===inn.programme;
+    const secSel=document.getElementById('edit-sector');
+    for(const opt of secSel.options) opt.selected=opt.value===inn.sector;
+    document.getElementById('modal-edit').style.display='flex';
+  },
+  closeEditModal(){ document.getElementById('modal-edit').style.display='none'; },
+
+  async saveEditInnovator(e){
+    e.preventDefault();
+    const btn=document.getElementById('save-edit-btn'); btn.disabled=true; btn.textContent='Saving...';
+    const id=document.getElementById('edit-inn-id').value;
+    const updates={
+      name:document.getElementById('edit-name').value,
+      organisation:document.getElementById('edit-org').value,
+      programme:document.getElementById('edit-programme').value,
+      sector:document.getElementById('edit-sector').value,
+      country:document.getElementById('edit-country').value,
+      grant:parseFloat(document.getElementById('edit-grant').value)||0,
+      email:document.getElementById('edit-email').value,
+    };
+    try{
+      await api('',{},{action:'updateInnovator',pw:this.S.pmPassword,id,updates});
+      const inn=this.S.innovators.find(i=>i.id===id);
+      if(inn) Object.assign(inn,updates);
+      this.closeEditModal(); this.renderPMHome();
+    }catch(ex){ alert('Update failed: '+ex.message); }
+    btn.disabled=false; btn.textContent='Save Changes';
+  },
+
+  async sendReminder(innId){
+    const inn=this.S.innovators.find(i=>i.id===innId); if(!inn) return;
+    if(!inn.email){alert('This innovator has no email address on record. Edit their details to add one.');return;}
+    const msg=prompt(`Send reminder to ${inn.name} (${inn.email}).\n\nOptional: type a custom message to include, or leave blank for the default reminder:`)??null;
+    if(msg===null) return;
+    this.loading(true,'Sending reminder...');
+    try{
+      await api('',{},{action:'sendReminder',pw:this.S.pmPassword,innId,message:msg});
+      this.loading(false);
+      alert(`Reminder sent to ${inn.email}.`);
+    }catch(ex){ this.loading(false); alert('Send failed: '+ex.message); }
+  },
+
+  async archiveInnovator(innId){
+    const inn=this.S.innovators.find(i=>i.id===innId); if(!inn) return;
+    if(!confirm(`Archive ${inn.name}?\n\nThey will no longer appear on the active list and cannot start new check-ins. Their data is preserved. You can view them with "Show archived".`)) return;
+    this.loading(true,'Archiving...');
+    try{
+      await api('',{},{action:'archiveInnovator',pw:this.S.pmPassword,id:innId});
+      inn.archived=true;
+      this.loading(false); this.renderPMHome();
+    }catch(ex){ this.loading(false); alert('Archive failed: '+ex.message); }
+  },
+
+  exportCSV(){
+    const rows=[['Innovation Name','Organisation','Programme','Sector','Country','Grant (USD)','Email','Access Code','Registered','Last Submission','Last Score','Status','Days Since Submission']];
+    this.S.innovators.forEach(inn=>{
+      const last=this.lastCheckin(inn.id);
+      const rl=last?this.riskLevel(last.riskScore):null;
+      const days=last?Math.floor((Date.now()-new Date(last.date))/86400000):'';
+      rows.push([inn.name,inn.organisation,inn.programme||'',inn.sector||'',inn.country||'',inn.grant||'',inn.email||'',inn.accessCode||'',inn.createdAt?new Date(inn.createdAt).toLocaleDateString('en-GB'):'',last?new Date(last.date).toLocaleDateString('en-GB'):'',last?last.riskScore+'%':'',rl?rl.label:'Not submitted',days]);
+    });
+    const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='ACAII_Innovators_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click(); URL.revokeObjectURL(a.href);
+  },
+
+  renderSettings(){
+    document.getElementById('cfg-pm-email').value=this.S.pmConfig.pmEmail||'';
+    document.getElementById('cfg-tool-url').value=this.S.pmConfig.toolUrl||'';
+    const msg=document.getElementById('cfg-msg'); msg.style.display='none';
+  },
+
+  async saveConfig(e){
+    e.preventDefault();
+    const btn=document.getElementById('save-cfg-btn'); btn.disabled=true; btn.textContent='Saving...';
+    const pmEmail=document.getElementById('cfg-pm-email').value.trim();
+    const toolUrl=document.getElementById('cfg-tool-url').value.trim();
+    const msg=document.getElementById('cfg-msg');
+    try{
+      await api('',{},{action:'saveConfig',pw:this.S.pmPassword,pmEmail,toolUrl});
+      this.S.pmConfig={pmEmail,toolUrl};
+      document.getElementById('pm-email-lbl').textContent=pmEmail||'Programme Manager';
+      msg.style.display='block'; msg.className='notice ok'; msg.textContent='Settings saved. Future emails will use these values.';
+    }catch(ex){ msg.style.display='block'; msg.className='notice err'; msg.textContent='Save failed: '+ex.message; }
+    btn.disabled=false; btn.textContent='Save Settings';
+  },
+
+  async savePmNote(ciId){
+    const textarea=document.getElementById('pm-note-input-'+ciId); if(!textarea) return;
+    const note=textarea.value.trim(); if(!note){alert('Please type a note before saving.');return;}
+    const btn=document.getElementById('pm-note-btn-'+ciId); btn.disabled=true; btn.textContent='Saving...';
+    try{
+      await api('',{},{action:'addPmNote',pw:this.S.pmPassword,ciId,note});
+      const ci=this.S.checkins.find(c=>c.id===ciId);
+      if(ci){ci.pmNote=note;ci.pmNoteDate=new Date().toISOString();}
+      btn.textContent='Saved ✓'; btn.style.background='var(--green)';
+    }catch(ex){ btn.disabled=false; btn.textContent='Save Note'; alert('Failed: '+ex.message); }
+  },
+
   async saveInnovator(e){
     e.preventDefault(); const f=e.target;
     const btn=document.getElementById('save-inn-btn'); btn.disabled=true; btn.textContent='Saving...';
@@ -642,10 +845,13 @@ const App={
     const data={name:f.name.value,organisation:f.org.value,programme:f.programme.value,sector:f.sector.value,country:f.country.value,grant:parseFloat(f.grant.value)||0,email:f.email.value,accessCode:code,createdAt:new Date().toISOString()};
     try{
       const id='INN-'+Date.now();
-      await api('',{},{action:'addInnovator',pw:this.S.pmPassword,record:{id,...data}});
+      const res=await api('',{},{action:'addInnovator',pw:this.S.pmPassword,record:{id,...data}});
       this.S.innovators.unshift({id,...data});
       this.closeModal(); this.renderPMHome();
-      alert(`Innovator registered successfully.\n\nAccess Code: ${code}\n\nShare this code and the tool URL with the innovator so they can log in and complete their check-in.`);
+      const emailNote=data.email
+        ?(res.emailSent?`\n\nAn email with the access code has been sent to ${data.email}.`:`\n\nEmail could not be sent to ${data.email} — share the code manually. Check that PM_EMAIL and TOOL_URL are set in Script Properties.`)
+        :'\n\nNo email address provided — share the code manually.';
+      alert(`Innovator registered.\n\nAccess Code: ${code}${emailNote}`);
     }catch(ex){ alert('Save failed: '+ex.message); }
     btn.disabled=false; btn.textContent='Register and Generate Code';
   },
@@ -894,6 +1100,19 @@ const App={
       </div>`;
     });
     html+=`</div></div>`;
+
+    if(from==='pm'){
+      const existingNote=ci.pmNote||'';
+      const noteDate=ci.pmNoteDate?` (saved ${new Date(ci.pmNoteDate).toLocaleDateString('en-GB')})`:'';
+      html+=`<div class="card no-print">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">PM Note${existingNote?noteDate:''}</div>
+        ${existingNote?`<div style="font-size:13px;background:var(--light);border:1px solid var(--border);padding:10px;border-radius:4px;margin-bottom:10px;white-space:pre-wrap">${this.esc(existingNote)}</div>`:''}
+        <textarea id="pm-note-input-${ci.id}" placeholder="Add your notes on this submission — follow-up actions, observations, decisions..." style="min-height:90px">${this.esc(existingNote)}</textarea>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end">
+          <button id="pm-note-btn-${ci.id}" class="btn btn-primary btn-sm" onclick="App.savePmNote('${ci.id}')">Save Note</button>
+        </div>
+      </div>`;
+    }
 
     document.getElementById('report-body').innerHTML=html;
     this.show('v-report'); window.scrollTo(0,0);
