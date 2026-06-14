@@ -423,6 +423,20 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
   </div>
 </div>
 
+<!-- MODAL: INSTALMENTS -->
+<div id="modal-inst" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;align-items:center;justify-content:center" onclick="if(event.target.id==='modal-inst')App.closeInstModal()">
+  <div style="background:#fff;border-radius:6px;padding:26px;width:660px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--navy)" id="inst-modal-title">Instalment Schedule</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px" id="inst-modal-sub"></div>
+      </div>
+      <button onclick="App.closeInstModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1">&#215;</button>
+    </div>
+    <div id="inst-modal-body"></div>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div id="v-settings" class="view">
   <div class="container">
@@ -878,6 +892,22 @@ const App={
           <button class="btn btn-secondary btn-sm">View Report</button>
         </div>`:'<div></div>'}
       </div>
+      ${(()=>{const inst=inn.disbursements||[];if(!inst.length)return'';const tg=Number(inn.grant||0);const rel=inst.filter(d=>d.status==='released').reduce((a,d)=>a+Number(d.amount||0),0);const pct=tg?Math.round((rel/tg)*100):0;return`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">Your Grant Instalments</div>
+        <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+          <div><div style="font-size:18px;font-weight:800;color:var(--navy)">$${tg.toLocaleString()}</div><div style="font-size:11px;color:var(--muted)">Total Grant</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:var(--green)">$${rel.toLocaleString()}</div><div style="font-size:11px;color:var(--muted)">Released</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#D97706">$${(tg-rel).toLocaleString()}</div><div style="font-size:11px;color:var(--muted)">Remaining</div></div>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:12px"><div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px"></div></div>
+        <div class="tbl-wrap"><table><tr><th>Instalment</th><th>Amount</th><th>Trigger</th><th>Status</th><th>Date</th></tr>
+          ${inst.map(d=>`<tr>
+            <td><strong>${d.label}</strong></td>
+            <td style="font-weight:700;color:${d.status==='released'?'var(--green)':'var(--navy)'}">$${Number(d.amount||0).toLocaleString()}</td>
+            <td style="font-size:12px;color:var(--muted)">${d.trigger||'—'}</td>
+            <td><span class="badge ${d.status==='released'?'b-green':'b-amber'}">${d.status==='released'?'Released':'Pending'}</span></td>
+            <td style="font-size:12px;color:var(--muted)">${d.releasedDate?new Date(d.releasedDate).toLocaleDateString('en-GB'):'—'}</td>
+          </tr>`).join('')}
+        </table></div></div>`;})()}
       ${cis.length>1?`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">Previous Submissions</div>
         <div class="tbl-wrap"><table><tr><th>Date</th><th>Report Type</th><th>IRL</th><th>Score</th><th>Status</th><th></th></tr>
           ${cis.map(ci=>{const r=this.riskLevel(ci.riskScore);return`<tr>
@@ -904,6 +934,19 @@ const App={
       const last=this.lastCheckin(inn.id); const rl=last?this.riskLevel(last.riskScore):null;
       const days=last?Math.floor((Date.now()-new Date(last.date))/86400000):null;
       const archived=inn.archived;
+      const instalments=inn.disbursements||[];
+      const totalGrant=Number(inn.grant||0);
+      const released=instalments.filter(d=>d.status==='released').reduce((a,d)=>a+Number(d.amount||0),0);
+      const pct=totalGrant?Math.round((released/totalGrant)*100):0;
+      const instSummary=totalGrant?`<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px">
+          <span>Disbursed: <strong style="color:var(--green)">$${released.toLocaleString()}</strong> of $${totalGrant.toLocaleString()}</span>
+          <span>${pct}%</span>
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':pct>50?'#1D4ED8':'#D97706'};border-radius:3px"></div>
+        </div>
+      </div>`:'';
       return`<div class="inn-card" style="${archived?'opacity:.5;':''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div style="font-size:14px;font-weight:700;color:var(--navy)">${this.esc(inn.name)}</div>
@@ -916,9 +959,11 @@ const App={
           ${rl?`<span class="badge ${rl.bc}">${rl.label}</span>`:'<span class="badge b-gray">Not submitted</span>'}
           ${days!==null?`<span style="font-size:11px;color:${days>35?'var(--red)':'var(--muted)'};margin-left:7px">${days}d ago${days>35?' — overdue':''}</span>`:''}
         </div>
+        ${instSummary}
         <div style="display:flex;gap:5px;flex-wrap:wrap">
           ${!archived?`<button class="btn btn-primary btn-xs" onclick="App.startCheckin('${inn.id}')">Check-In</button>`:''}
           ${last?`<button class="btn btn-secondary btn-xs" onclick="App.viewReport('${last.id}','pm')">Report</button>`:''}
+          <button class="btn btn-secondary btn-xs" onclick="App.openInstalments('${inn.id}')">Instalments</button>
           <button class="btn btn-secondary btn-xs" onclick="App.openEditModal('${inn.id}')">Edit</button>
           ${!archived?`<button class="btn btn-secondary btn-xs" onclick="App.sendReminder('${inn.id}')">Remind</button>`:''}
           ${!archived?`<button class="btn btn-secondary btn-xs" style="color:var(--red)" onclick="App.archiveInnovator('${inn.id}')">Archive</button>`:''}
@@ -1019,6 +1064,118 @@ const App={
       this.S.checkins=this.S.checkins.filter(c=>c.id!==ciId);
       this.loading(false); this.renderHistory();
     }catch(ex){ this.loading(false); alert('Delete failed: '+ex.message); }
+  },
+
+  openInstalments(innId){
+    const inn=this.S.innovators.find(i=>i.id===innId); if(!inn) return;
+    this._instInnId=innId;
+    document.getElementById('inst-modal-title').textContent=inn.name+' — Instalment Schedule';
+    document.getElementById('inst-modal-sub').textContent='Total grant: $'+Number(inn.grant||0).toLocaleString();
+    this.renderInstalments();
+    document.getElementById('modal-inst').style.display='flex';
+  },
+
+  closeInstModal(){ document.getElementById('modal-inst').style.display='none'; },
+
+  renderInstalments(){
+    const innId=this._instInnId;
+    const inn=this.S.innovators.find(i=>i.id===innId); if(!inn) return;
+    const inst=inn.disbursements||[];
+    const totalGrant=Number(inn.grant||0);
+    const released=inst.filter(d=>d.status==='released').reduce((a,d)=>a+Number(d.amount||0),0);
+    const scheduled=inst.reduce((a,d)=>a+Number(d.amount||0),0);
+    const remaining=totalGrant-released;
+    const pct=totalGrant?Math.round((released/totalGrant)*100):0;
+    let html=`
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        <div class="card" style="border-left:3px solid var(--navy);padding:10px 12px">
+          <div style="font-size:22px;font-weight:800;color:var(--navy)">$${totalGrant.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Total Grant</div>
+        </div>
+        <div class="card" style="border-left:3px solid var(--green);padding:10px 12px">
+          <div style="font-size:22px;font-weight:800;color:var(--green)">$${released.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Released</div>
+        </div>
+        <div class="card" style="border-left:3px solid #D97706;padding:10px 12px">
+          <div style="font-size:22px;font-weight:800;color:#D97706">$${remaining.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Remaining</div>
+        </div>
+      </div>
+      <div style="height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:14px">
+        <div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':pct>50?'#1D4ED8':'#D97706'};border-radius:4px"></div>
+      </div>`;
+    if(inst.length){
+      html+=`<div class="tbl-wrap" style="margin-bottom:14px"><table>
+        <tr><th>Instalment</th><th>Amount (USD)</th><th>Release Trigger</th><th>Status</th><th>Date Released</th><th></th></tr>
+        ${inst.map((d,i)=>{
+          const rel=d.status==='released';
+          return`<tr style="${i%2===0?'background:var(--light)':''}">
+            <td style="font-weight:600">${this.esc(d.label)}</td>
+            <td style="font-weight:700;color:${rel?'var(--green)':'var(--navy)'}">$${Number(d.amount||0).toLocaleString()}</td>
+            <td style="font-size:12px;color:var(--muted)">${this.esc(d.trigger||'—')}</td>
+            <td><span class="badge ${rel?'b-green':'b-amber'}">${rel?'Released':'Pending'}</span></td>
+            <td style="font-size:12px;color:var(--muted)">${d.releasedDate?new Date(d.releasedDate).toLocaleDateString('en-GB'):'—'}</td>
+            <td style="display:flex;gap:4px;padding:6px">
+              ${!rel?`<button class="btn btn-primary btn-xs" onclick="App.releaseInstalment('${d.id}')">Release</button>`:'<span style="font-size:11px;color:var(--green)">&#10003; Paid</span>'}
+              ${!rel?`<button class="btn btn-secondary btn-xs" onclick="App.deleteInstalment('${d.id}')">Delete</button>`:''}
+            </td>
+          </tr>`;
+        }).join('')}
+      </table></div>`;
+    } else {
+      html+=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;background:var(--light);border-radius:6px;margin-bottom:14px">No instalments set up yet. Add your first one below.</div>`;
+    }
+    html+=`<div style="border:1px solid var(--border);border-radius:6px;padding:14px;background:var(--light)">
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">Add Instalment</div>
+      <div class="field-row">
+        <div class="field"><label>Label</label><input type="text" id="inst-label" placeholder="e.g. Kick-off Payment"></div>
+        <div class="field"><label>Amount (USD)</label><input type="number" id="inst-amount" min="0" placeholder="25000"></div>
+      </div>
+      <div class="field"><label>Release Trigger</label><input type="text" id="inst-trigger" placeholder="e.g. Milestone 1 report approved by PM"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-primary btn-sm" onclick="App.addInstalment()">Add Instalment</button>
+      </div>
+    </div>`;
+    document.getElementById('inst-modal-body').innerHTML=html;
+  },
+
+  addInstalment(){
+    const label=document.getElementById('inst-label').value.trim();
+    const amount=parseFloat(document.getElementById('inst-amount').value)||0;
+    const trigger=document.getElementById('inst-trigger').value.trim();
+    if(!label||!amount){alert('Please enter both a label and an amount.');return;}
+    const inn=this.S.innovators.find(i=>i.id===this._instInnId); if(!inn) return;
+    if(!inn.disbursements) inn.disbursements=[];
+    inn.disbursements.push({id:'D-'+Date.now(),label,amount,trigger,status:'pending',releasedDate:null});
+    this.saveInstalments(this._instInnId,inn.disbursements);
+  },
+
+  releaseInstalment(dId){
+    const inn=this.S.innovators.find(i=>i.id===this._instInnId); if(!inn) return;
+    const d=(inn.disbursements||[]).find(x=>x.id===dId); if(!d) return;
+    if(!confirm(`Release $${Number(d.amount).toLocaleString()} — "${d.label}"?\n\nThis records today as the release date and cannot be undone.`)) return;
+    d.status='released'; d.releasedDate=new Date().toISOString();
+    this.saveInstalments(this._instInnId,inn.disbursements);
+  },
+
+  deleteInstalment(dId){
+    const inn=this.S.innovators.find(i=>i.id===this._instInnId); if(!inn) return;
+    const d=(inn.disbursements||[]).find(x=>x.id===dId);
+    if(!confirm(`Delete instalment "${d?.label}"?\n\nThis cannot be undone.`)) return;
+    inn.disbursements=(inn.disbursements||[]).filter(x=>x.id!==dId);
+    this.saveInstalments(this._instInnId,inn.disbursements);
+  },
+
+  async saveInstalments(innId,instalments){
+    const inn=this.S.innovators.find(i=>i.id===innId); if(!inn) return;
+    this.loading(true,'Saving instalments...');
+    try{
+      await api('',{},{action:'updateInnovator',pw:this.S.pmPassword,id:innId,updates:{disbursements:instalments}});
+      inn.disbursements=instalments;
+      this.loading(false);
+      this.renderInstalments();
+      this.renderPMHome();
+    }catch(ex){this.loading(false);alert('Save failed: '+ex.message);}
   },
 
   exportPortfolioReport(){
@@ -1581,8 +1738,23 @@ const App={
     const flags=withData.reduce((a,x)=>a+(x.last.allFlags||[]).filter(f=>f.level==='err').length,0);
     const byType={monthly:0,quarterly:0,milestone:0,eog:0};
     this.S.checkins.forEach(c=>{const t=c.reportType||'monthly';if(byType[t]!==undefined)byType[t]++;});
+    const totalGrant=this.S.innovators.reduce((a,i)=>a+Number(i.grant||0),0);
+    const totalReleased=this.S.innovators.reduce((a,i)=>a+(i.disbursements||[]).filter(d=>d.status==='released').reduce((s,d)=>s+Number(d.amount||0),0),0);
+    const totalRemaining=totalGrant-totalReleased;
     el.innerHTML=`
     <div style="padding:18px 0 10px"><div style="font-size:18px;font-weight:700;color:var(--navy)">Portfolio Risk Dashboard</div><div style="font-size:13px;color:var(--muted);margin-top:3px">Based on the latest submission for each innovator</div></div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">Grant Disbursement Overview</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px">
+        <div style="padding:12px;background:var(--light);border-radius:6px;border:1px solid var(--border)"><div style="font-size:20px;font-weight:800;color:var(--navy)">$${totalGrant.toLocaleString()}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Total Portfolio Grant</div></div>
+        <div style="padding:12px;background:var(--light);border-radius:6px;border:1px solid var(--border)"><div style="font-size:20px;font-weight:800;color:var(--green)">$${totalReleased.toLocaleString()}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Total Disbursed</div></div>
+        <div style="padding:12px;background:var(--light);border-radius:6px;border:1px solid var(--border)"><div style="font-size:20px;font-weight:800;color:#D97706">$${totalRemaining.toLocaleString()}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Remaining to Disburse</div></div>
+      </div>
+      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${totalGrant?Math.round((totalReleased/totalGrant)*100):0}%;background:var(--green);border-radius:4px;transition:width .4s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">${totalGrant?Math.round((totalReleased/totalGrant)*100):0}% of total portfolio disbursed</div>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px">
       <div class="card" style="border-left:3px solid var(--navy)"><div style="font-size:28px;font-weight:800;color:var(--navy)">${avg}%</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Average Score</div></div>
       <div class="card" style="border-left:3px solid var(--red)"><div style="font-size:28px;font-weight:800;color:var(--red)">${crit}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">High-Risk Innovators</div></div>
