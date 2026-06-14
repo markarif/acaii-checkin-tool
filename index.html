@@ -225,6 +225,47 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
   </div>
 </div>
 
+<!-- REPORT TYPE SELECTOR -->
+<div id="v-report-type" class="view">
+  <div style="min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:100%;max-width:700px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:19px;font-weight:700;color:var(--navy)" id="rtype-inn-name"></div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Select the type of report you are submitting today</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="entry-card" onclick="App.selectReportType('monthly')" style="text-align:left">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--blue);margin-bottom:6px">Every Month</div>
+          <h3 style="margin-bottom:8px">Monthly Check-In</h3>
+          <p style="margin-bottom:14px">Your regular progress update. 40 questions covering your current stage, users, phase progress, finances, and responsible AI compliance. Takes 30 to 45 minutes.</p>
+          <button class="btn btn-primary btn-sm" style="width:100%">Start Monthly Check-In</button>
+        </div>
+        <div class="entry-card" onclick="App.selectReportType('quarterly')" style="text-align:left">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--green);margin-bottom:6px">Every 3 Months</div>
+          <h3 style="margin-bottom:8px">Quarterly Review</h3>
+          <p style="margin-bottom:14px">All monthly questions plus a financial statement, one full user case study, a partnership status table, and an analytics export. Takes 2 to 3 hours.</p>
+          <button class="btn btn-success btn-sm" style="width:100%">Start Quarterly Review</button>
+        </div>
+        <div class="entry-card" onclick="App.selectReportType('milestone')" style="text-align:left">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--amber);margin-bottom:6px">When a Phase Is Complete</div>
+          <h3 style="margin-bottom:8px">Milestone Report</h3>
+          <p style="margin-bottom:14px">Submit when you have completed a grant phase. Covers completion evidence, third-party validation, lessons learned, and a go/no-go decision for the next phase. Takes 1 to 2 hours.</p>
+          <button class="btn btn-sm" style="width:100%;background:var(--amber);color:#fff">Submit Milestone Report</button>
+        </div>
+        <div class="entry-card" onclick="App.selectReportType('eog')" style="text-align:left">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--red);margin-bottom:6px">End of Grant Period</div>
+          <h3 style="margin-bottom:8px">End of Grant Report</h3>
+          <p style="margin-bottom:14px">The comprehensive final evaluation covering all outcomes vs objectives, full KPI results, financial reconciliation, sustainability evidence, and community impact. Takes 3 to 4 hours.</p>
+          <button class="btn btn-sm" style="width:100%;background:var(--navy);color:#fff">Submit End of Grant Report</button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:16px">
+        <button class="btn btn-secondary btn-sm" onclick="App.cancelReportType()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- WIZARD -->
 <div id="v-wizard" class="view">
   <div class="container">
@@ -401,7 +442,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
 //   7. To host this HTML file free: drag it into Google Drive and
 //      share the link, OR use any static host (Netlify, GitHub Pages)
 // ================================================================
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzTRw1FNqxxxDwJBTnVpxNA90TAfrym_J_Psb8KqzlIXbqBWbBwCOt3WTn5RUW0f5X7/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxLehl0GetO4KmHEUrfH23h6nmLu8n5YtbrCA_ou2nnIO3QK95XunVAIpz70XYshUM/exec';
 
 const IS_CONFIGURED = !SHEETS_API_URL.startsWith('REPLACE');
 
@@ -517,6 +558,131 @@ const DOCS=[
   {id:'d15',name:'Declaration of no conflict of interest',required:false},
 ];
 
+// ── QUARTERLY EXTRA SECTIONS ─────────────────────────────────────
+const SECTIONS_QUARTERLY_EXTRA=[
+  {id:'sq1',title:'Financial Statement',
+   desc:'Provide a full account of how grant funds have been spent this quarter against the approved budget.',
+   questions:[
+    {id:'qf1',type:'textarea',minLen:120,label:'List all expenditures this quarter by category. Include the item, amount spent, and the approved budget for that line.',hint:'Example: Personnel — $3,200 spent of $4,500 budgeted. Software — $180 spent of $200 budgeted.',redFlags:['various costs','general expenses','as budgeted','all spent correctly'],weight:3},
+    {id:'qf2',type:'number',minVal:0,isCurrency:true,label:'Total grant funds spent this quarter (USD).',hint:'Exact figure from your financial records.',weight:2},
+    {id:'qf3',type:'textarea',minLen:80,label:'Are there any budget lines where actual spend is more than 20% above or below the approved amount? Explain why.',hint:'If spend is on track, say so clearly and state the totals. Do not leave this blank.',redFlags:['all on track','no variance','no issues','everything matches'],weight:2},
+    {id:'qf4',type:'textarea',minLen:60,label:'What co-funding or additional income has been received this quarter? List each source and amount.',hint:'If none, state clearly. Even in-kind support should be noted.',weight:2},
+    {id:'qf5',type:'textarea',minLen:60,label:'Are there any financial risks that could affect project delivery? What is your plan to address them?',hint:'Cash flow delays, currency fluctuation, or budget shortfalls all count. No risks is a red flag.',redFlags:['no risks','no financial issues','on track','no concerns'],weight:2},
+  ]},
+  {id:'sq2',title:'Case Study — A Real User This Quarter',
+   desc:'Write one detailed user story from this quarter. This is the human evidence behind your numbers.',
+   questions:[
+    {id:'qcs1',type:'textarea',minLen:150,label:'Name the user (first name is fine), their location, their situation before they used your product, and what specifically changed for them.',hint:'This must be a real person, not a composite or hypothetical. Include enough detail that someone could follow up with them.',redFlags:['a typical user','many users like','our users generally','user X'],weight:3},
+    {id:'qcs2',type:'textarea',minLen:80,label:'What specific measurable outcome did this user experience? Give numbers where possible.',hint:'Example: Yield increased from 3 bags to 5 bags per acre. Income rose by KES 4,200 in one month.',redFlags:['positive impact','improved their lives','benefited from','felt better'],weight:3},
+    {id:'qcs3',type:'textarea',minLen:60,label:'Paste the user\'s verbatim feedback — their own words, not your summary.',hint:'Copy and paste. If you recorded a phone call, transcribe it. Do not paraphrase.',weight:2},
+    {id:'qcs4',type:'textarea',minLen:60,label:'What would not have been possible for this user without your product?',hint:'Be specific. What alternative did they have before, and why was it worse?',weight:2},
+  ]},
+  {id:'sq3',title:'Partnership and Ecosystem Update',
+   desc:'Provide a formal update on all partnerships, integrations, and strategic relationships.',
+   questions:[
+    {id:'qp1',type:'textarea',minLen:120,label:'List every active partnership. For each: organisation name, what was agreed, current status (signed/active/stalled), and what value it delivers.',hint:'Include government, NGO, private sector, and research partners. Agreements that are only "in discussion" must be labelled clearly.',redFlags:['we are in discussions','various partners','organisations we work with','looking for partners'],weight:3},
+    {id:'qp2',type:'textarea',minLen:80,label:'Have any partnerships been delayed, broken down, or changed since the last quarterly review? Explain what happened and the impact.',hint:'Do not omit failed partnerships. A partnership that fell through without explanation is a red flag.',redFlags:['no changes','all partnerships active','everything is fine'],weight:2},
+    {id:'qp3',type:'textarea',minLen:60,label:'What is the one partnership most critical to your Phase 2 success? What is the current status and what is the risk if it does not materialise?',hint:'Be specific about the organisation, the person you are engaging, and what a delay means for your timeline.',weight:2},
+    {id:'qp4',type:'textarea',minLen:60,label:'Provide a link to your analytics export for this quarter. Describe what the data shows about user growth.',hint:'This must be an actual export from your analytics platform, not a number you typed in. Provide the link or confirm it is attached.',weight:3},
+  ]},
+];
+
+// ── MILESTONE SECTIONS ────────────────────────────────────────────
+const SECTIONS_MILESTONE=[
+  {id:'sm1',title:'Milestone Completion Evidence',
+   desc:'Demonstrate that the milestone named in your original check-in has been fully achieved.',
+   questions:[
+    {id:'qm1',type:'textarea',minLen:80,label:'State the exact milestone you committed to completing. Copy it from your original check-in form.',hint:'Do not paraphrase. Use the exact wording you submitted when you named this milestone.',weight:3},
+    {id:'qm2',type:'textarea',minLen:120,label:'Describe what you actually delivered. Include dates, outputs, and any differences from the original plan.',hint:'If the deliverable changed, say what changed, why, and how it still meets the programme objectives.',redFlags:['mostly completed','almost done','nearly there','substantially achieved'],weight:3},
+    {id:'qm3',type:'textarea',minLen:60,label:'List the specific evidence you are submitting to prove this milestone is complete.',hint:'Examples: deployment URL with analytics screenshot, signed MOU with a named partner, a field report with user names and dates.',weight:3},
+    {id:'qm4',type:'number',minVal:0,tracksChange:true,label:'How many active users does the product have at the point of this milestone?',hint:'Exact figure from your analytics platform. State the platform name.',weight:2},
+    {id:'qm5',type:'textarea',minLen:60,label:'What was the single biggest challenge in reaching this milestone and how did you overcome it?',hint:'Every real journey has obstacles. A smooth-sailing answer with no challenge mentioned is a flag.',redFlags:['no major challenges','went smoothly','no issues','everything went to plan'],weight:2},
+  ]},
+  {id:'sm2',title:'Third-Party Validation',
+   desc:'An independent person or organisation must confirm that the milestone has been achieved.',
+   questions:[
+    {id:'qv1',type:'textarea',minLen:80,label:'Name the third party who can validate this milestone. Provide their full name, organisation, role, and contact details.',hint:'This must be someone external to your organisation. A user, a partner, a government contact, or a mentor. Not a team member.',redFlags:['our team member','internal validator','colleague','co-founder'],weight:3},
+    {id:'qv2',type:'textarea',minLen:60,label:'What specifically did this third party observe, test, or verify? Paste any written confirmation they provided.',hint:'A WhatsApp message, email, or letter from the validator counts. Paste the text or provide the link.',weight:3},
+    {id:'qv3',type:'textarea',minLen:60,label:'Provide a link to any independently verifiable evidence — analytics dashboard, deployment URL, government registry entry, published report.',hint:'This is evidence ACAII can verify without contacting the innovator. It should stand alone.',weight:2},
+  ]},
+  {id:'sm3',title:'Lessons Learned',
+   desc:'Honest reflection on this phase — what worked, what did not, and what you would do differently.',
+   questions:[
+    {id:'ql1',type:'textarea',minLen:100,label:'What worked better than expected in this phase? Give a specific example.',hint:'This should be something genuinely surprising or validating — not just that the phase completed.',weight:2},
+    {id:'ql2',type:'textarea',minLen:100,label:'What did not work as planned? What would you do differently if starting this phase again?',hint:'Do not say everything worked. Every phase has things that could have been done better.',redFlags:['everything worked','nothing to change','went as planned','no regrets'],weight:2},
+    {id:'ql3',type:'textarea',minLen:80,label:'What one thing have you learned about your users that you did not know at the start of this phase?',hint:'This should be a genuine insight about behaviour, need, or context — not just that they like the product.',weight:2},
+    {id:'ql4',type:'textarea',minLen:80,label:'How will this phase\'s experience change how you approach the next phase?',hint:'Be specific. Name a decision you will make differently because of what you learned.',weight:2},
+  ]},
+  {id:'sm4',title:'Go / No-Go for Next Phase',
+   desc:'Confirm readiness to proceed to the next grant phase — or flag the risks that need resolving first.',
+   questions:[
+    {id:'qg1',type:'textarea',minLen:80,label:'Do you recommend proceeding to the next phase? State yes or no and explain your reasoning.',hint:'If yes, state what is in place. If no or partially, state what needs to happen first.',weight:3},
+    {id:'qg2',type:'textarea',minLen:80,label:'What is the single greatest risk to successfully completing the next phase? What is your mitigation plan?',hint:'Be specific. Name the risk, the probability, and the concrete step you will take if it materialises.',redFlags:['no major risks','no significant risks','low risk','minimal risk'],weight:3},
+    {id:'qg3',type:'number',minVal:0,isCurrency:true,label:'How much of the grant budget remains unspent at this milestone point (USD)?',hint:'Exact figure. If all funds have been used, state zero and confirm this is expected.',weight:2},
+    {id:'qg4',type:'textarea',minLen:60,label:'What is the first specific action you will take in the opening two weeks of the next phase?',hint:'Name the action, the person responsible, and the exact date it will be completed.',weight:2},
+  ]},
+];
+
+// ── END OF GRANT SECTIONS ─────────────────────────────────────────
+const SECTIONS_EOG=[
+  {id:'se1',title:'Outcomes vs Original Objectives',
+   desc:'Compare what you set out to achieve with what you actually delivered across the full grant period.',
+   questions:[
+    {id:'qe1',type:'textarea',minLen:150,label:'List each original objective from your proposal. Against each one, state whether it was fully achieved, partially achieved, or not achieved, and explain why.',hint:'Copy your objectives from the original proposal. Be honest. Partial or not-achieved is acceptable with explanation.',redFlags:['all objectives met','everything achieved','fully delivered','completed as planned'],weight:3},
+    {id:'qe2',type:'number',minVal:0,tracksChange:true,label:'Final number of active users at the end of the grant period.',hint:'Exact figure from your analytics. State the date of the measurement.',weight:3},
+    {id:'qe3',type:'textarea',minLen:80,label:'What did you promise to deliver and did not? Explain why and what you plan to do about it.',hint:'Every grant has undelivered elements. Omitting them will be identified in the audit.',redFlags:['all delivered','nothing outstanding','fully complete','no gaps'],weight:3},
+    {id:'qe4',type:'textarea',minLen:80,label:'What was the most significant unplanned outcome — positive or negative — of this grant period?',hint:'Something that happened that you did not anticipate in the original proposal. This shows genuine learning.',weight:2},
+  ]},
+  {id:'se2',title:'Final KPI Results',
+   desc:'Report the actual result for every KPI you committed to track during the grant period.',
+   questions:[
+    {id:'qk1',type:'textarea',minLen:120,label:'List every KPI from your Phase 2 check-in. Against each one, state the target and the actual final figure.',hint:'Format: KPI name — Target: X — Actual: Y — Status: Met / Partially met / Not met.',redFlags:['approximately','around','roughly','nearly met','almost achieved'],weight:3},
+    {id:'qk2',type:'textarea',minLen:80,label:'Which KPI are you most proud of and why? Provide the evidence for your claim.',hint:'Pick one. Name the number, the source, and what it means for the community you serve.',weight:2},
+    {id:'qk3',type:'textarea',minLen:80,label:'Which KPI was furthest from target? Explain what went wrong and what you have learned.',hint:'Do not avoid this question. Missing a KPI with a clear explanation is far better than silence.',weight:2},
+    {id:'qk4',type:'textarea',minLen:60,label:'Provide links to your final analytics exports showing user data for the full grant period.',hint:'These should be independently accessible. A Google Analytics export, App Store data, or platform dashboard screenshot with a date stamp.',weight:3},
+  ]},
+  {id:'se3',title:'Financial Reconciliation',
+   desc:'Account for every penny of grant funding received and spent during the grant period.',
+   questions:[
+    {id:'qr1',type:'textarea',minLen:150,label:'Provide a full financial reconciliation by budget line. For each line: approved budget, total spent, variance, and explanation of variance.',hint:'This must cover the full grant period from start to finish. Every line in the approved budget must appear here.',weight:3},
+    {id:'qr2',type:'number',minVal:0,isCurrency:true,label:'Total grant funds received (USD).',hint:'The full amount received from ACAII across all tranches.',weight:2},
+    {id:'qr3',type:'number',minVal:0,isCurrency:true,label:'Total grant funds spent (USD).',hint:'Total expenditure attributable to this grant across the full period.',weight:2},
+    {id:'qr4',type:'textarea',minLen:60,label:'If there are any unspent funds, what is the amount and what is the plan for them?',hint:'Unspent funds must be returned or formally re-purposed with ACAII approval. State which applies.',weight:2},
+    {id:'qr5',type:'textarea',minLen:60,label:'Confirm that all receipts and invoices are available for audit. Provide a link to the document folder.',hint:'The folder should contain receipts for every expenditure above a reasonable threshold. Provide the Google Drive or equivalent link.',weight:3},
+  ]},
+  {id:'se4',title:'Sustainability After the Grant',
+   desc:'Demonstrate that this innovation will continue to serve its users after ACAII funding ends.',
+   questions:[
+    {id:'qs1',type:'textarea',minLen:120,label:'Describe exactly how the product will be funded and operated after the grant ends. Name who pays, how much, and when payments begin.',hint:'If you are dependent on another grant application, state this honestly. "We will apply for more grants" alone is not a sustainability plan.',redFlags:['will seek funding','explore revenue','future fundraising','apply for grants','will figure it out'],weight:3},
+    {id:'qs2',type:'number',minVal:0,isCurrency:true,label:'Current monthly operating cost (USD).',hint:'What does it cost to run the product at its current scale for one month?',weight:2},
+    {id:'qs3',type:'number',minVal:0,isCurrency:true,label:'Current monthly revenue or income from the product (USD). Enter zero if none yet.',hint:'Include all income: subscriptions, transaction fees, government contracts, licensing, or in-kind support converted to USD.',weight:2},
+    {id:'qs4',type:'textarea',minLen:80,label:'Name the specific organisation or individual who would take over operations if ACAII withdrew all support today.',hint:'Name the person, their organisation, and confirm you have spoken to them about this. "We would self-sustain" requires evidence.',weight:3},
+    {id:'qs5',type:'textarea',minLen:80,label:'What does this innovation look like in three years? Be specific: how many users, which countries, what outcomes, and who is funding it.',hint:'Give concrete numbers and named geographies. Avoid phrases like "we hope to" or "we aim to."',redFlags:['we hope','we aim','potentially','could reach','might achieve'],weight:2},
+  ]},
+  {id:'se5',title:'Community Impact Evidence',
+   desc:'Demonstrate the real change this innovation has made in the lives of real people.',
+   questions:[
+    {id:'qi1',type:'textarea',minLen:150,label:'Name five real users from across your target geography. For each: name, location, how they used the product, and one measurable outcome.',hint:'These must be verifiable. Include enough detail that ACAII could contact them independently.',redFlags:['users in general','our community','many people','hundreds benefited'],weight:3},
+    {id:'qi2',type:'textarea',minLen:80,label:'What is the single most powerful piece of impact evidence from the full grant period? Provide the source.',hint:'One number, one story, or one outcome that best captures the value of this innovation. Cite the source.',weight:3},
+    {id:'qi3',type:'textarea',minLen:80,label:'Has your innovation caused any unintended harm or negative outcome for any user or community? Describe it honestly.',hint:'Every technology can have negative effects. Acknowledging them with a mitigation plan is professional. Denying them entirely is a flag.',redFlags:['no negative effects','no harm','no issues','users are all positive'],weight:2},
+    {id:'qi4',type:'textarea',minLen:60,label:'What is the responsible AI status of your product at the end of the grant? Has bias been tested, privacy protected, and consent obtained?',hint:'State specifically what tests were done, when, and what the findings were.',redFlags:['not yet tested','plan to test','no bias found without testing','will address later'],weight:3},
+  ]},
+];
+
+const SECTIONS_ALL={
+  monthly: SECTIONS,
+  quarterly: [...SECTIONS,...SECTIONS_QUARTERLY_EXTRA],
+  milestone: SECTIONS_MILESTONE,
+  eog: SECTIONS_EOG,
+};
+
+const REPORT_TYPE_LABELS={
+  monthly:'Monthly Check-In',
+  quarterly:'Quarterly Review',
+  milestone:'Milestone Report',
+  eog:'End of Grant Report',
+};
+
 const VAGUE=[
   {re:/\bworking on it\b/i,msg:'"Working on it" is not a deliverable — state the specific outcome and date'},
   {re:/\bsoon\b/i,msg:'"Soon" is not a timeline — give a specific date'},
@@ -539,7 +705,8 @@ const VAGUE=[
 const App={
   S:{role:null,pmPassword:null,currentInn:null,wizInn:null,wizSec:0,
      answers:{},liveFlags:{},prevAnswers:{},docChecks:{},docLinks:{},irlVal:null,
-     innovators:[],checkins:[],lastCiId:null,editInn:null,pmConfig:{pmEmail:'',toolUrl:''}},
+     innovators:[],checkins:[],lastCiId:null,editInn:null,pmConfig:{pmEmail:'',toolUrl:''},
+     reportType:null},
 
   // ── INIT ──────────────────────────────────────────────────────
   init(){
@@ -666,8 +833,8 @@ const App={
       </div>`:''}
       <div class="g2" style="margin-bottom:14px">
         <div class="card" style="border-color:var(--navy);cursor:pointer" onclick="App.startCheckin('${inn.id}')">
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">${last?'Start New Check-In':'Start Application'}</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${last?'Complete your next submission. Previous answers shown for reference.':'Fill in all 7 sections of the application form.'}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">${last?'Start New Report':'Start Application'}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${last?'Choose your report type — Monthly, Quarterly, Milestone, or End of Grant — then complete the relevant sections.':'Fill in all sections of the application form.'}</div>
           <button class="btn btn-primary btn-sm">Begin</button>
         </div>
         ${last?`<div class="card" style="cursor:pointer" onclick="App.viewReport('${last.id}','innovator')">
@@ -677,9 +844,10 @@ const App={
         </div>`:'<div></div>'}
       </div>
       ${cis.length>1?`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">Previous Submissions</div>
-        <div class="tbl-wrap"><table><tr><th>Date</th><th>IRL</th><th>Score</th><th>Status</th><th></th></tr>
+        <div class="tbl-wrap"><table><tr><th>Date</th><th>Report Type</th><th>IRL</th><th>Score</th><th>Status</th><th></th></tr>
           ${cis.map(ci=>{const r=this.riskLevel(ci.riskScore);return`<tr>
             <td>${new Date(ci.date).toLocaleDateString('en-GB')}</td>
+            <td style="font-size:12px">${REPORT_TYPE_LABELS[ci.reportType||'monthly']||'Monthly Check-In'}</td>
             <td>${ci.irl?'Level '+ci.irl:'—'}</td>
             <td><strong style="color:${r.color}">${ci.riskScore}%</strong></td>
             <td><span class="badge ${r.bc}">${r.label}</span></td>
@@ -859,9 +1027,25 @@ const App={
   // ── WIZARD ────────────────────────────────────────────────────
   startCheckin(innId){
     this.S.wizInn=innId; this.S.wizSec=0; this.S.answers={}; this.S.liveFlags={};
-    this.S.irlVal=null; this.S.docChecks={}; this.S.docLinks={};
+    this.S.irlVal=null; this.S.docChecks={}; this.S.docLinks={}; this.S.reportType=null;
     const prev=this.lastCheckin(innId); this.S.prevAnswers=prev?prev.answers||{}:{};
+    const inn=this.S.innovators.find(i=>i.id===innId)||this.S.currentInn||{name:''};
+    document.getElementById('rtype-inn-name').textContent=inn.name+(inn.organisation?' — '+inn.organisation:'');
+    this.show('v-report-type');
+  },
+
+  getActiveSections(){
+    return SECTIONS_ALL[this.S.reportType]||SECTIONS;
+  },
+
+  selectReportType(type){
+    this.S.reportType=type;
     this.show('v-wizard'); this.renderSection();
+  },
+
+  cancelReportType(){
+    if(this.S.role==='innovator'){this.renderInnHome();this.show('v-inn-home');}
+    else{this.pmGo('home');}
   },
 
   wizBack(){
@@ -870,16 +1054,18 @@ const App={
   },
 
   renderSection(){
-    const sec=SECTIONS[this.S.wizSec]; const cur=this.S.wizSec; const tot=SECTIONS.length;
+    const ACT=this.getActiveSections();
+    const sec=ACT[this.S.wizSec]; const cur=this.S.wizSec; const tot=ACT.length;
     const inn=this.S.innovators.find(i=>i.id===this.S.wizInn)||this.S.currentInn||{name:'',organisation:''};
-    const qOff=SECTIONS.slice(0,cur).reduce((a,s)=>a+s.questions.length,0);
-    const qTot=SECTIONS.reduce((a,s)=>a+s.questions.length,0);
-    document.getElementById('wiz-meta').textContent=inn.name+(inn.organisation?' — '+inn.organisation:'');
+    const qOff=ACT.slice(0,cur).reduce((a,s)=>a+s.questions.length,0);
+    const qTot=ACT.reduce((a,s)=>a+s.questions.length,0);
+    const rtLabel=REPORT_TYPE_LABELS[this.S.reportType]||'Check-In';
+    document.getElementById('wiz-meta').textContent=(inn.name+(inn.organisation?' — '+inn.organisation:''))+' · '+rtLabel;
     document.getElementById('wiz-sec-label').textContent=`Section ${cur+1} of ${tot}: ${sec.title}`;
     document.getElementById('wiz-q-count').textContent=`Questions ${qOff+1}–${qOff+sec.questions.length} of ${qTot}`;
-    document.getElementById('wiz-progress').innerHTML=SECTIONS.map((_,i)=>`<div class="progress-seg ${i<cur?'done':i===cur?'active':''}"></div>`).join('');
+    document.getElementById('wiz-progress').innerHTML=ACT.map((_,i)=>`<div class="progress-seg ${i<cur?'done':i===cur?'active':''}"></div>`).join('');
     let qn=qOff;
-    let html=`<div class="card"><div class="sec-label">Section ${cur+1} of ${tot}</div><div class="sec-title">${sec.title}</div><div class="sec-desc">${sec.desc}</div>`;
+    let html=`<div class="card"><div class="sec-label">Section ${cur+1} of ${tot} · ${rtLabel}</div><div class="sec-title">${sec.title}</div><div class="sec-desc">${sec.desc}</div>`;
     sec.questions.forEach(q=>{
       qn++; const prev=this.S.prevAnswers[q.id]; const ca=this.S.answers[q.id]||''; const fl=this.S.liveFlags[q.id]||[];
       html+=`<div class="field" id="field-${q.id}"><label><span class="q-num">${qn}.</span>${q.label}${q.type!=='docs'?` <span style="color:var(--red)">*</span>`:''}</label>`;
@@ -1003,7 +1189,7 @@ const App={
     const sectionScores=this.getSectionScores(this.S.answers);
     const missingDocs=DOCS.filter(d=>d.required&&!this.S.docChecks[d.id]).map(d=>d.name);
     const id='CI-'+Date.now();
-    const data={id,innovatorId:this.S.wizInn,date:new Date().toISOString(),answers:{...this.S.answers},riskScore,allFlags,sectionScores,irl:this.S.irlVal,docChecks:{...this.S.docChecks},docLinks:{...this.S.docLinks},missingDocs,submittedBy:this.S.role==='pm'?'pm':'innovator'};
+    const data={id,innovatorId:this.S.wizInn,date:new Date().toISOString(),reportType:this.S.reportType||'monthly',answers:{...this.S.answers},riskScore,allFlags,sectionScores,irl:this.S.irlVal,docChecks:{...this.S.docChecks},docLinks:{...this.S.docLinks},missingDocs,submittedBy:this.S.role==='pm'?'pm':'innovator'};
     this.loading(true,'Saving submission...');
     try{
       await api('',{},{action:'addCheckin',record:data});
@@ -1065,8 +1251,10 @@ const App={
       <div style="font-size:13px">${rl.detail}</div>
     </div>`;
 
-    html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">Section Scores</div><div class="g2">`;
-    SECTIONS.forEach(sec=>{const ss=ci.sectionScores?.[sec.id]??0;const c=ss>=75?'var(--green)':ss>=50?'#D97706':'var(--red)';
+    const ciSecs=SECTIONS_ALL[ci.reportType||'monthly']||SECTIONS;
+    const rtLabel=REPORT_TYPE_LABELS[ci.reportType||'monthly']||'Monthly Check-In';
+    html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px">Section Scores</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px">${rtLabel}</div><div class="g2">`;
+    ciSecs.forEach(sec=>{const ss=ci.sectionScores?.[sec.id]??0;const c=ss>=75?'var(--green)':ss>=50?'#D97706':'var(--red)';
       html+=`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="font-weight:600">${sec.title}</span><span style="color:${c};font-weight:700">${ss}%</span></div><div class="risk-bar"><div class="risk-fill" style="width:${ss}%;background:${c}"></div></div></div>`;
     });
     html+=`</div></div>`;
@@ -1075,8 +1263,8 @@ const App={
     if(wa.length){html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:#D97706;margin-bottom:10px">Warnings (${wa.length})</div>`;wa.slice(0,8).forEach(f=>html+=`<div class="flag warning"><div class="flag-section">${f.section}</div><div class="flag-msg">${f.msg}</div><div class="flag-q">${f.qLabel}</div></div>`);html+=`</div>`;}
     if(ci.missingDocs?.length){html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:10px">Missing Required Documents (${ci.missingDocs.length})</div>`;ci.missingDocs.forEach(d=>html+=`<div style="font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)">${d}</div>`);html+=`</div>`;}
 
-    html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:14px">Full Submission</div>`;
-    SECTIONS.forEach(sec=>{
+    html+=`<div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:14px">Full Submission — ${rtLabel}</div>`;
+    ciSecs.forEach(sec=>{
       html+=`<div class="section-group"><div class="section-group-title">${sec.title}</div>`;
       sec.questions.forEach(q=>{
         if(q.type==='irl'){html+=`<div class="answer-block"><div class="answer-q">Innovation Readiness Level</div><div class="answer-a">Level ${ci.irl||'Not selected'} — ${IRL_LEVELS.find(l=>l.n===ci.irl)?.label||''}</div></div>`;return;}
@@ -1123,13 +1311,15 @@ const App={
     const el=document.getElementById('history-body');
     if(!this.S.checkins.length){el.innerHTML=`<div class="empty-state"><h3>No submissions yet</h3></div>`;return;}
     el.innerHTML=`<div class="tbl-wrap"><table>
-      <tr><th>Date</th><th>Innovator</th><th>IRL</th><th>Score</th><th>Status</th><th>Flags</th><th>Missing Docs</th><th>By</th><th></th></tr>
+      <tr><th>Date</th><th>Innovator</th><th>Report Type</th><th>IRL</th><th>Score</th><th>Status</th><th>Flags</th><th>Missing Docs</th><th>By</th><th></th></tr>
       ${[...this.S.checkins].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(ci=>{
         const inn=this.S.innovators.find(i=>i.id===ci.innovatorId)||{name:'Unknown'};
         const rl=this.riskLevel(ci.riskScore); const hi=(ci.allFlags||[]).filter(f=>f.level==='err').length; const md=ci.missingDocs?.length||0;
+        const rtl=REPORT_TYPE_LABELS[ci.reportType||'monthly']||'Monthly Check-In';
         return`<tr>
           <td style="font-size:12px">${new Date(ci.date).toLocaleDateString('en-GB')}</td>
           <td><strong>${inn.name}</strong></td>
+          <td style="font-size:12px">${rtl}</td>
           <td><span class="badge b-navy">L${ci.irl||'?'}</span></td>
           <td><strong style="color:${rl.color}">${ci.riskScore}%</strong></td>
           <td><span class="badge ${rl.bc}">${rl.label}</span></td>
@@ -1150,14 +1340,23 @@ const App={
     const crit=withData.filter(x=>x.last.riskScore<50).length;
     const notsub=this.S.innovators.filter(i=>!this.lastCheckin(i.id)).length;
     const flags=withData.reduce((a,x)=>a+(x.last.allFlags||[]).filter(f=>f.level==='err').length,0);
+    const byType={monthly:0,quarterly:0,milestone:0,eog:0};
+    this.S.checkins.forEach(c=>{const t=c.reportType||'monthly';if(byType[t]!==undefined)byType[t]++;});
     el.innerHTML=`
     <div style="padding:18px 0 10px"><div style="font-size:18px;font-weight:700;color:var(--navy)">Portfolio Risk Dashboard</div><div style="font-size:13px;color:var(--muted);margin-top:3px">Based on the latest submission for each innovator</div></div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px">
       <div class="card" style="border-left:3px solid var(--navy)"><div style="font-size:28px;font-weight:800;color:var(--navy)">${avg}%</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Average Score</div></div>
       <div class="card" style="border-left:3px solid var(--red)"><div style="font-size:28px;font-weight:800;color:var(--red)">${crit}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">High-Risk Innovators</div></div>
       <div class="card" style="border-left:3px solid #D97706"><div style="font-size:28px;font-weight:800;color:var(--navy)">${flags}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Critical Flags (total)</div></div>
       <div class="card" style="border-left:3px solid var(--muted)"><div style="font-size:28px;font-weight:800;color:var(--navy)">${notsub}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Not Yet Submitted</div></div>
     </div>
+    <div class="card" style="margin-bottom:14px"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">Submissions by Report Type</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      <div style="text-align:center;padding:10px;background:var(--light);border-radius:6px;border:1px solid var(--border)"><div style="font-size:22px;font-weight:800;color:var(--navy)">${byType.monthly}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Monthly</div></div>
+      <div style="text-align:center;padding:10px;background:var(--light);border-radius:6px;border:1px solid var(--border)"><div style="font-size:22px;font-weight:800;color:var(--navy)">${byType.quarterly}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Quarterly</div></div>
+      <div style="text-align:center;padding:10px;background:var(--light);border-radius:6px;border:1px solid var(--border)"><div style="font-size:22px;font-weight:800;color:var(--navy)">${byType.milestone}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Milestone</div></div>
+      <div style="text-align:center;padding:10px;background:var(--light);border-radius:6px;border:1px solid var(--border)"><div style="font-size:22px;font-weight:800;color:var(--navy)">${byType.eog}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">End of Grant</div></div>
+    </div></div>
     <div class="card"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">All Innovators</div>
     <div class="tbl-wrap"><table>
       <tr><th>Innovator</th><th>Organisation</th><th>Access Code</th><th>IRL</th><th>Score</th><th>Status</th><th>Flags</th><th>Days since submission</th><th></th></tr>
@@ -1185,7 +1384,7 @@ const App={
   // ── SCORING ───────────────────────────────────────────────────
   calcRisk(ans){
     let tot=0,mx=0;
-    SECTIONS.forEach(sec=>sec.questions.forEach(q=>{
+    this.getActiveSections().forEach(sec=>sec.questions.forEach(q=>{
       if(q.type==='docs'||q.type==='irl') return; mx+=q.weight*3;
       const v=(ans[q.id]||'').toString().trim(); const fl=this.analyzeAnswer(q,v);
       const hi=fl.filter(f=>f.level==='err').length,mi=fl.filter(f=>f.level==='warn').length;
@@ -1195,7 +1394,7 @@ const App={
   },
   getSectionScores(ans){
     const s={};
-    SECTIONS.forEach(sec=>{let t=0,m=0;
+    this.getActiveSections().forEach(sec=>{let t=0,m=0;
       sec.questions.forEach(q=>{if(q.type==='docs'||q.type==='irl') return;m+=q.weight*3;
         const v=(ans[q.id]||'').toString().trim();const fl=this.analyzeAnswer(q,v);
         const hi=fl.filter(f=>f.level==='err').length,mi=fl.filter(f=>f.level==='warn').length;
@@ -1207,7 +1406,7 @@ const App={
   },
   getAllFlags(ans){
     const flags=[];
-    SECTIONS.forEach(sec=>sec.questions.forEach(q=>{
+    this.getActiveSections().forEach(sec=>sec.questions.forEach(q=>{
       if(q.type==='docs'||q.type==='irl') return;
       const v=(ans[q.id]||'').toString().trim();
       this.analyzeAnswer(q,v).filter(f=>f.level!=='ok').forEach(f=>flags.push({...f,qId:q.id,qLabel:q.label,section:sec.title}));
@@ -1220,7 +1419,11 @@ const App={
     if(score>=50) return{label:'High Risk',bc:'b-amber',color:'#B45309',bg:'var(--amber-bg)',action:'Do not release next tranche. Senior review required.',detail:'Multiple vague or suspicious answers. Require a face-to-face meeting with documented evidence for all flagged sections.'};
     return{label:'Critical Risk',bc:'b-red',color:'var(--red)',bg:'var(--red-bg)',action:'Suspend funding immediately. Launch formal investigation.',detail:'Severe authenticity concerns. Do not release any further funds. Request bank statements, receipts, and a live product demonstration within 72 hours.'};
   },
-  findQ(id){for(const s of SECTIONS) for(const q of s.questions) if(q.id===id) return q;return null;},
+  findQ(id){
+    const all=[...SECTIONS,...SECTIONS_QUARTERLY_EXTRA,...SECTIONS_MILESTONE,...SECTIONS_EOG];
+    for(const s of all) for(const q of s.questions) if(q.id===id) return q;
+    return null;
+  },
   lastCheckin(id){const c=this.S.checkins.filter(x=>x.innovatorId===id);return c.length?c.sort((a,b)=>new Date(b.date)-new Date(a.date))[0]:null;},
   esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
 };
