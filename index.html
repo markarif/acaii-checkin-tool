@@ -1559,7 +1559,7 @@ const App={
   },
 
   wizNext(){
-    const sec=SECTIONS[this.S.wizSec]; let bad=false;
+    const sec=this.getActiveSections()[this.S.wizSec]; let bad=false;
     sec.questions.forEach(q=>{
       if(q.type==='irl'){if(!this.S.irlVal){bad=true;const g=document.getElementById('irl-grid');if(g)g.style.outline='2px solid var(--red)';}}
       else if(q.type==='docs'){return;}
