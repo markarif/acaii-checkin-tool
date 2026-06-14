@@ -1222,7 +1222,7 @@ const App={
   },
   findQ(id){for(const s of SECTIONS) for(const q of s.questions) if(q.id===id) return q;return null;},
   lastCheckin(id){const c=this.S.checkins.filter(x=>x.innovatorId===id);return c.length?c.sort((a,b)=>new Date(b.date)-new Date(a.date))[0]:null;},
-  esc(s){return s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
+  esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
 };
 
 window.addEventListener('DOMContentLoaded',()=>App.init());
