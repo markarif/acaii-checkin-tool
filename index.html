@@ -477,7 +477,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
 //   7. To host this HTML file free: drag it into Google Drive and
 //      share the link, OR use any static host (Netlify, GitHub Pages)
 // ================================================================
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzpVvnIhy5tf51H_tBxsU4btDrbc5ZEHDSPOQMJM0TzyKaBlNnvgvNk7rK6HKIakxv_/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxLehl0GetO4KmHEUrfH23h6nmLu8n5YtbrCA_ou2nnIO3QK95XunVAIpz70XYshUM/exec';
 
 const IS_CONFIGURED = !SHEETS_API_URL.startsWith('REPLACE');
 
@@ -1115,11 +1115,25 @@ const App={
     const msg=document.getElementById('cfg-msg'); msg.style.display='none';
   },
 
+  normaliseDriveUrl(url){
+    // Convert any Google Drive share link to a direct embeddable URL
+    const m=url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
+    // Also handle /open?id= format
+    const m2=url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
+    return url;
+  },
+
   previewLogo(url){
     const wrap=document.getElementById('cfg-logo-preview');
     const img=document.getElementById('cfg-logo-img');
-    if(url){wrap.style.display='block';img.src=url;}
-    else{wrap.style.display='none';}
+    if(url){
+      const resolved=this.normaliseDriveUrl(url);
+      wrap.style.display='block';
+      img.src=resolved;
+      img.onerror=()=>{img.alt='Could not load image — check the URL and sharing settings';};
+    } else { wrap.style.display='none'; }
   },
 
   async saveConfig(e){
@@ -1128,7 +1142,7 @@ const App={
     const pmEmail=document.getElementById('cfg-pm-email').value.trim();
     const toolUrl=document.getElementById('cfg-tool-url').value.trim();
     const driveFolderId=document.getElementById('cfg-drive-folder').value.trim();
-    const logoUrl=document.getElementById('cfg-logo-url').value.trim();
+    const logoUrl=this.normaliseDriveUrl(document.getElementById('cfg-logo-url').value.trim());
     const msg=document.getElementById('cfg-msg');
     try{
       await api('',{},{action:'saveConfig',pw:this.S.pmPassword,pmEmail,toolUrl,driveFolderId,logoUrl});
