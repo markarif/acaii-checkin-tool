@@ -106,7 +106,19 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
 .empty-state h3{font-size:15px;font-weight:600;margin-bottom:7px;color:var(--text)}
 .cmp-up{color:var(--green);font-weight:700;font-size:12px}
 .cmp-dn{color:var(--red);font-weight:700;font-size:12px}
-@media print{.header .header-nav,.nav-row .btn,.no-print{display:none!important}.view{display:block!important}.container,.container-wide{max-width:100%;padding:8px}}
+.print-header{display:none}
+@media print{
+  .header,.header-nav,.nav-row .btn,.no-print{display:none!important}
+  .view{display:block!important}
+  .container,.container-wide{max-width:100%;padding:8px}
+  .print-header{display:flex!important;align-items:center;gap:14px;padding:12px 0 16px;border-bottom:2px solid #1B275A;margin-bottom:18px}
+  .print-logo{height:52px;width:auto;object-fit:contain}
+  .print-logo-text{font-size:22px;font-weight:800;color:#1B275A;letter-spacing:-.5px}
+  .print-org{font-size:11px;color:#555;margin-top:2px}
+  .print-doc-title{margin-left:auto;text-align:right}
+  .print-doc-title div:first-child{font-size:13px;font-weight:700;color:#1B275A}
+  .print-doc-title div:last-child{font-size:11px;color:#555;margin-top:2px}
+}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
 </style>
 </head>
@@ -216,6 +228,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
           </label>
         </div>
         <div style="display:flex;gap:7px">
+          <button class="btn btn-secondary btn-sm" onclick="App.exportPortfolioReport()">Export Portfolio PDF</button>
           <button class="btn btn-secondary btn-sm" onclick="App.exportCSV()">Export CSV</button>
           <button class="btn btn-primary btn-sm" onclick="App.openModal()">Register New Innovator</button>
         </div>
@@ -285,6 +298,17 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
     <div style="display:flex;justify-content:space-between;margin-bottom:18px" class="no-print">
       <button class="btn btn-secondary btn-sm" id="report-back-btn">Back</button>
       <button class="btn btn-primary btn-sm" onclick="window.print()">Print / Save PDF</button>
+    </div>
+    <div class="print-header" id="report-print-header">
+      <div id="rph-logo"></div>
+      <div>
+        <div class="print-logo-text" id="rph-orgname">ACAII</div>
+        <div class="print-org">Africa Centre for Advanced Innovation Initiatives</div>
+      </div>
+      <div class="print-doc-title">
+        <div id="rph-doctype">Submission Report</div>
+        <div id="rph-date"></div>
+      </div>
     </div>
     <div id="report-body"></div>
   </div>
@@ -414,6 +438,17 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
           <label>Check-In Tool URL (GitHub Pages)</label>
           <div style="font-size:12px;color:var(--muted);margin-bottom:5px">Included in all emails sent to innovators so they can access the tool.</div>
           <input type="url" id="cfg-tool-url" placeholder="https://your-username.github.io/acaii-checkin-tool/">
+        </div>
+        <div class="field">
+          <label>Organisation Logo URL</label>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:5px">Paste the direct URL of your organisation logo image. It will appear at the top of all printed submission reports and exported portfolio PDFs. Upload the logo to Google Drive or any public image host and paste the direct image link here.</div>
+          <input type="url" id="cfg-logo-url" placeholder="https://example.com/acaii-logo.png">
+          <div id="cfg-logo-preview" style="margin-top:8px;display:none"><img id="cfg-logo-img" style="max-height:48px;max-width:200px;border:1px solid var(--border);border-radius:4px;padding:4px;background:#fff" alt="Logo preview"></div>
+        </div>
+        <div class="field">
+          <label>Google Drive Root Folder ID</label>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:5px">All innovator document folders will be created inside this Drive folder. To get the ID: open the folder in Google Drive, copy the long string from the URL — <strong>drive.google.com/drive/folders/THIS_PART</strong>. The folder must be owned by the same Google account that runs this Apps Script.</div>
+          <input type="text" id="cfg-drive-folder" placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74VA">
         </div>
         <div style="font-size:12px;color:var(--muted);background:var(--light);border:1px solid var(--border);padding:11px;border-radius:4px;margin-bottom:14px">
           These settings are stored securely in Google Apps Script Script Properties. You can also set them directly there: open your Sheet &gt; Extensions &gt; Apps Script &gt; gear icon (Project Settings) &gt; Script properties.
@@ -759,9 +794,9 @@ const App={
     await this.loadAll();
     try{
       const cfg=await api('getConfig',{pw:this.S.pmPassword});
-      this.S.pmConfig={pmEmail:cfg.pmEmail||'',toolUrl:cfg.toolUrl||''};
+      this.S.pmConfig={pmEmail:cfg.pmEmail||'',toolUrl:cfg.toolUrl||'',driveFolderId:cfg.driveFolderId||'',logoUrl:cfg.logoUrl||''};
       document.getElementById('pm-email-lbl').textContent=cfg.pmEmail||'Project Manager';
-    }catch(_){ document.getElementById('pm-email-lbl').textContent='Programme Manager'; }
+    }catch(_){ document.getElementById('pm-email-lbl').textContent='Project Manager'; }
     this.loading(false);
     this.pmGo('home');
   },
@@ -986,6 +1021,74 @@ const App={
     }catch(ex){ this.loading(false); alert('Delete failed: '+ex.message); }
   },
 
+  exportPortfolioReport(){
+    const logo=this.S.pmConfig?.logoUrl||'';
+    const logoHtml=logo
+      ?`<img src="${this.esc(logo)}" style="height:56px;width:auto;object-fit:contain" alt="Logo">`
+      :`<div style="font-size:24px;font-weight:800;color:#1B275A;letter-spacing:-.5px">ACAII</div>`;
+    const date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    const rows=this.S.innovators.map(inn=>{
+      const last=this.lastCheckin(inn.id);
+      const rl=last?this.riskLevel(last.riskScore):null;
+      const days=last?Math.floor((Date.now()-new Date(last.date))/86400000):null;
+      const rtl=last?REPORT_TYPE_LABELS[last.reportType||'monthly']||'Monthly':'—';
+      const scoreColor=rl?rl.color:'#888';
+      return`<tr>
+        <td><strong>${this.esc(inn.name)}</strong></td>
+        <td>${this.esc(inn.organisation||'')}</td>
+        <td>${this.esc(inn.country||'')}</td>
+        <td>${inn.grant?'$'+Number(inn.grant).toLocaleString():'—'}</td>
+        <td>${last?new Date(last.date).toLocaleDateString('en-GB'):'Never'}</td>
+        <td>${rtl}</td>
+        <td style="font-weight:700;color:${scoreColor}">${last?last.riskScore+'%':'—'}</td>
+        <td><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:${rl?rl.bg:'#f3f4f6'};color:${scoreColor}">${rl?rl.label:'Not submitted'}</span></td>
+        <td style="color:${days!==null&&days>35?'#C0392B':'#555'}">${days!==null?days+'d'+(days>35?' — overdue':''):'—'}</td>
+      </tr>`;
+    }).join('');
+    const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+    <title>ACAII Portfolio Report — ${date}</title>
+    <style>
+      body{font-family:Arial,sans-serif;font-size:12px;color:#222;margin:0;padding:24px}
+      .ph{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:2px solid #1B275A;margin-bottom:20px}
+      .ph-right{margin-left:auto;text-align:right}
+      .ph-title{font-size:15px;font-weight:700;color:#1B275A}
+      .ph-date{font-size:11px;color:#555;margin-top:3px}
+      .ph-org{font-size:11px;color:#555;margin-top:2px}
+      h2{font-size:14px;color:#1B275A;margin:0 0 12px}
+      table{width:100%;border-collapse:collapse;font-size:11px}
+      th{background:#1B275A;color:#fff;padding:7px 9px;text-align:left;font-weight:700;white-space:nowrap}
+      td{padding:6px 9px;border-bottom:1px solid #e5e7eb;vertical-align:middle}
+      tr:nth-child(even) td{background:#F0F4FF}
+      .footer{margin-top:24px;font-size:10px;color:#888;border-top:1px solid #e5e7eb;padding-top:10px}
+      @media print{body{padding:12px}button{display:none}}
+    </style>
+    </head><body>
+    <div class="ph">
+      ${logoHtml}
+      <div>
+        <div style="font-size:18px;font-weight:800;color:#1B275A">ACAII Innovation Portfolio</div>
+        <div class="ph-org">Africa Centre for Advanced Innovation Initiatives</div>
+      </div>
+      <div class="ph-right">
+        <div class="ph-title">Portfolio Risk Report</div>
+        <div class="ph-date">Generated ${date}</div>
+      </div>
+    </div>
+    <h2>Funded Innovators — ${this.S.innovators.length} registered</h2>
+    <table><thead><tr>
+      <th>Innovation</th><th>Organisation</th><th>Country</th><th>Grant</th>
+      <th>Last Submission</th><th>Report Type</th><th>Score</th><th>Status</th><th>Days Since</th>
+    </tr></thead><tbody>${rows}</tbody></table>
+    <div class="footer">ACAII Check-In Platform · Exported ${date} · Confidential</div>
+    <br><button onclick="window.print()" style="padding:8px 20px;background:#1B275A;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">Print / Save as PDF</button>
+    </body></html>`;
+    const blob=new Blob([html],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+    if(!w) alert('Allow pop-ups for this site to open the portfolio report.');
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  },
+
   exportCSV(){
     const rows=[['Innovation Name','Organisation','Programme','Sector','Country','Grant (USD)','Email','Access Code','Registered','Last Submission','Last Score','Status','Days Since Submission']];
     this.S.innovators.forEach(inn=>{
@@ -1004,7 +1107,19 @@ const App={
   renderSettings(){
     document.getElementById('cfg-pm-email').value=this.S.pmConfig.pmEmail||'';
     document.getElementById('cfg-tool-url').value=this.S.pmConfig.toolUrl||'';
+    document.getElementById('cfg-drive-folder').value=this.S.pmConfig.driveFolderId||'';
+    const logoInp=document.getElementById('cfg-logo-url');
+    logoInp.value=this.S.pmConfig.logoUrl||'';
+    this.previewLogo(this.S.pmConfig.logoUrl||'');
+    logoInp.oninput=()=>this.previewLogo(logoInp.value.trim());
     const msg=document.getElementById('cfg-msg'); msg.style.display='none';
+  },
+
+  previewLogo(url){
+    const wrap=document.getElementById('cfg-logo-preview');
+    const img=document.getElementById('cfg-logo-img');
+    if(url){wrap.style.display='block';img.src=url;}
+    else{wrap.style.display='none';}
   },
 
   async saveConfig(e){
@@ -1012,12 +1127,14 @@ const App={
     const btn=document.getElementById('save-cfg-btn'); btn.disabled=true; btn.textContent='Saving...';
     const pmEmail=document.getElementById('cfg-pm-email').value.trim();
     const toolUrl=document.getElementById('cfg-tool-url').value.trim();
+    const driveFolderId=document.getElementById('cfg-drive-folder').value.trim();
+    const logoUrl=document.getElementById('cfg-logo-url').value.trim();
     const msg=document.getElementById('cfg-msg');
     try{
-      await api('',{},{action:'saveConfig',pw:this.S.pmPassword,pmEmail,toolUrl});
-      this.S.pmConfig={pmEmail,toolUrl};
-      document.getElementById('pm-email-lbl').textContent=pmEmail||'Programme Manager';
-      msg.style.display='block'; msg.className='notice ok'; msg.textContent='Settings saved. Future emails will use these values.';
+      await api('',{},{action:'saveConfig',pw:this.S.pmPassword,pmEmail,toolUrl,driveFolderId,logoUrl});
+      this.S.pmConfig={pmEmail,toolUrl,driveFolderId,logoUrl};
+      document.getElementById('pm-email-lbl').textContent=pmEmail||'Project Manager';
+      msg.style.display='block'; msg.className='notice ok'; msg.textContent='Settings saved.';
     }catch(ex){ msg.style.display='block'; msg.className='notice err'; msg.textContent='Save failed: '+ex.message; }
     btn.disabled=false; btn.textContent='Save Settings';
   },
@@ -1129,17 +1246,60 @@ const App={
   },
 
   renderDocsField(){
+    const hasDrive=!!this.S.pmConfig?.driveFolderId;
     return`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">
-      <div style="display:grid;grid-template-columns:26px 1fr 90px 170px;background:var(--light);padding:8px 11px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border-bottom:1px solid var(--border)">
-        <span></span><span>Document</span><span>Status</span><span>Link / Reference</span>
+      <div style="display:grid;grid-template-columns:26px 1fr 90px 1fr;background:var(--light);padding:8px 11px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border-bottom:1px solid var(--border)">
+        <span></span><span>Document</span><span>Status</span><span>${hasDrive?'Upload / Link':'Link / Reference'}</span>
       </div>
-      ${DOCS.map(d=>`<div class="doc-item">
-        <div class="doc-check ${this.S.docChecks[d.id]?'checked':''}" onclick="App.toggleDoc('${d.id}')">${this.S.docChecks[d.id]?'&#10003;':''}</div>
-        <div style="font-size:13px">${d.name}</div>
-        <div><span class="badge ${d.required?'b-red':'b-gray'}">${d.required?'Required':'Optional'}</span></div>
-        <input class="doc-link-input" type="text" placeholder="URL or filename" value="${this.S.docLinks[d.id]||''}" oninput="App.setDocLink('${d.id}',this.value)">
-      </div>`).join('')}
+      ${DOCS.map(d=>{
+        const lk=this.S.docLinks[d.id]||'';
+        const checked=this.S.docChecks[d.id];
+        const uploadCol=hasDrive
+          ?`<div style="display:flex;align-items:center;gap:6px">
+              <input type="file" id="doc-file-${d.id}" style="display:none" onchange="App.uploadDoc('${d.id}',this.files[0])">
+              <button class="btn btn-secondary btn-xs" onclick="document.getElementById('doc-file-${d.id}').click()" type="button">Upload</button>
+              <span id="doc-status-${d.id}" style="font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${lk?'<a href="'+this.esc(lk)+'" target="_blank" style="color:var(--navy)">View file</a>':'No file yet'}</span>
+            </div>`
+          :`<input class="doc-link-input" type="text" placeholder="URL or filename" value="${this.esc(lk)}" oninput="App.setDocLink('${d.id}',this.value)">`;
+        return`<div class="doc-item">
+          <div class="doc-check ${checked?'checked':''}" onclick="App.toggleDoc('${d.id}')">${checked?'&#10003;':''}</div>
+          <div style="font-size:13px">${d.name}</div>
+          <div><span class="badge ${d.required?'b-red':'b-gray'}">${d.required?'Required':'Optional'}</span></div>
+          ${uploadCol}
+        </div>`;
+      }).join('')}
     </div>`;
+  },
+
+  async uploadDoc(docId, file){
+    if(!file) return;
+    const innId=this.S.wizInn||this.S.currentInn?.id; if(!innId) return;
+    const statusEl=document.getElementById('doc-status-'+docId);
+    if(statusEl) statusEl.textContent='Uploading…';
+    try{
+      const base64=await new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=()=>res(r.result.split(',')[1]);
+        r.onerror=rej;
+        r.readAsDataURL(file);
+      });
+      const result=await api('',{},{
+        action:'uploadFile',
+        pw: this.S.pmPassword||'',
+        innovatorId: innId,
+        docId,
+        fileName: file.name,
+        mimeType: file.type||'application/octet-stream',
+        base64
+      });
+      this.S.docLinks[docId]=result.url;
+      this.S.docChecks[docId]=true;
+      if(statusEl) statusEl.innerHTML=`<a href="${this.esc(result.url)}" target="_blank" style="color:var(--navy)">View file</a>`;
+      const chk=document.querySelector(`.doc-check[onclick="App.toggleDoc('${docId}')"]`);
+      if(chk){chk.classList.add('checked');chk.innerHTML='&#10003;';}
+    }catch(ex){
+      if(statusEl) statusEl.textContent='Upload failed: '+ex.message;
+    }
   },
 
   toggleDoc(id){
@@ -1243,6 +1403,14 @@ const App={
     const irlD=IRL_LEVELS.find(l=>l.n===ci.irl);
     const backFn=from==='innovator'?`App.renderInnHome();App.show('v-inn-home')`:`App.pmGo('history')`;
     document.getElementById('report-back-btn').onclick=new Function(backFn);
+
+    // populate print header
+    const logoUrl=this.S.pmConfig?.logoUrl||'';
+    const rphLogo=document.getElementById('rph-logo');
+    rphLogo.innerHTML=logoUrl?`<img src="${this.esc(logoUrl)}" class="print-logo" alt="Logo" onerror="this.style.display='none'">`:`<div class="print-logo-text">ACAII</div>`;
+    document.getElementById('rph-orgname').textContent=inn.organisation||'ACAII';
+    document.getElementById('rph-doctype').textContent=REPORT_TYPE_LABELS[ci.reportType||'monthly']||'Submission Report';
+    document.getElementById('rph-date').textContent='Printed '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
 
     let html=`<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px">
