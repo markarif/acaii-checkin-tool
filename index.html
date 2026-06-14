@@ -153,11 +153,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
     <div class="entry-cards">
       <div class="entry-card" onclick="App.show('v-code')">
         <h3>I am a Funded Innovator</h3>
-        <p>Complete your check-in using the access code your programme manager shared with you.</p>
+        <p>Complete your check-in using the access code your project manager shared with you.</p>
         <button class="btn btn-primary" style="width:100%">Enter Access Code</button>
       </div>
       <div class="entry-card" onclick="App.show('v-pm-login')">
-        <h3>Programme Manager</h3>
+        <h3>Project Manager</h3>
         <p>Access the portfolio dashboard, register innovators, review submissions, and generate reports.</p>
         <button class="btn btn-secondary" style="width:100%">Manager Login</button>
       </div>
@@ -170,7 +170,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
   <div style="min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:24px">
     <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:32px;width:100%;max-width:440px">
       <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px">Enter Your Access Code</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Your programme manager will have shared a unique code with you. It looks like: <strong>ACAII-AB1C2D</strong></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Your project manager will have shared a unique code with you. It looks like: <strong>ACAII-AB1C2D</strong></div>
       <div class="field">
         <label>Access Code</label>
         <input type="text" id="code-inp" placeholder="e.g. ACAII-AB1C2D" style="font-size:16px;letter-spacing:.5px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')App.validateCode()">
@@ -188,7 +188,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
 <div id="v-pm-login" class="view">
   <div style="min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:24px">
     <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:32px;width:100%;max-width:380px">
-      <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px">Programme Manager Login</div>
+      <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px">Project Manager Login</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Enter the PM password you set in Apps Script Script Properties.</div>
       <div class="field"><label>Password</label><input type="password" id="pm-pass-inp" placeholder="Enter PM password" onkeydown="if(event.key==='Enter')App.pmLogin()"></div>
       <div id="login-err" style="display:none;font-size:12px;color:var(--red);margin-bottom:10px"></div>
@@ -406,7 +406,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--light)}
       <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:16px">Platform Settings</div>
       <form onsubmit="App.saveConfig(event)">
         <div class="field">
-          <label>Programme Manager Email</label>
+          <label>Project Manager Email</label>
           <div style="font-size:12px;color:var(--muted);margin-bottom:5px">All innovator welcome emails and check-in notifications are CC'd to this address.</div>
           <input type="email" id="cfg-pm-email" placeholder="pm@acaii.org">
         </div>
@@ -760,7 +760,7 @@ const App={
     try{
       const cfg=await api('getConfig',{pw:this.S.pmPassword});
       this.S.pmConfig={pmEmail:cfg.pmEmail||'',toolUrl:cfg.toolUrl||''};
-      document.getElementById('pm-email-lbl').textContent=cfg.pmEmail||'Programme Manager';
+      document.getElementById('pm-email-lbl').textContent=cfg.pmEmail||'Project Manager';
     }catch(_){ document.getElementById('pm-email-lbl').textContent='Programme Manager'; }
     this.loading(false);
     this.pmGo('home');
@@ -790,7 +790,7 @@ const App={
     const code=document.getElementById('code-inp').value.trim().toUpperCase();
     const errEl=document.getElementById('code-err'); errEl.style.display='none';
     if(!code){errEl.textContent='Please enter your access code.';errEl.style.display='block';return;}
-    if(!IS_CONFIGURED){errEl.textContent='System not yet configured. Contact your programme manager.';errEl.style.display='block';return;}
+    if(!IS_CONFIGURED){errEl.textContent='System not yet configured. Contact your project manager.';errEl.style.display='block';return;}
     this.loading(true,'Verifying code...');
     try{
       const res=await api('getByCode',{code});
@@ -804,7 +804,7 @@ const App={
       this.show('v-inn-home');
     }catch(e){
       this.loading(false);
-      errEl.textContent=e.message==='not found'?'Code not found. Check with your programme manager.':'Error: '+e.message;
+      errEl.textContent=e.message==='not found'?'Code not found. Check with your project manager.':'Error: '+e.message;
       errEl.style.display='block';
     }
   },
@@ -887,6 +887,7 @@ const App={
           <button class="btn btn-secondary btn-xs" onclick="App.openEditModal('${inn.id}')">Edit</button>
           ${!archived?`<button class="btn btn-secondary btn-xs" onclick="App.sendReminder('${inn.id}')">Remind</button>`:''}
           ${!archived?`<button class="btn btn-secondary btn-xs" style="color:var(--red)" onclick="App.archiveInnovator('${inn.id}')">Archive</button>`:''}
+          <button class="btn btn-secondary btn-xs" style="color:var(--red);border-color:var(--red)" onclick="App.deleteInnovator('${inn.id}')">Delete</button>
         </div>
       </div>`;
     }).join('');
@@ -956,6 +957,33 @@ const App={
       inn.archived=true;
       this.loading(false); this.renderPMHome();
     }catch(ex){ this.loading(false); alert('Archive failed: '+ex.message); }
+  },
+
+  async deleteInnovator(innId){
+    const inn=this.S.innovators.find(i=>i.id===innId); if(!inn) return;
+    const subCount=this.S.checkins.filter(c=>c.innovatorId===innId).length;
+    if(!confirm(`Permanently delete ${inn.name}?\n\nThis will also delete all ${subCount} submission(s) for this innovator.\n\nThis cannot be undone.`)) return;
+    this.loading(true,'Deleting...');
+    try{
+      await api('',{},{action:'deleteInnovator',pw:this.S.pmPassword,id:innId});
+      this.S.innovators=this.S.innovators.filter(i=>i.id!==innId);
+      this.S.checkins=this.S.checkins.filter(c=>c.innovatorId!==innId);
+      this.loading(false); this.renderPMHome();
+    }catch(ex){ this.loading(false); alert('Delete failed: '+ex.message); }
+  },
+
+  async deleteCheckin(ciId){
+    const ci=this.S.checkins.find(c=>c.id===ciId); if(!ci) return;
+    const inn=this.S.innovators.find(i=>i.id===ci.innovatorId)||{name:'Unknown'};
+    const dt=new Date(ci.date).toLocaleDateString('en-GB');
+    const rt=(REPORT_TYPE_LABELS[ci.reportType||'monthly']||'Monthly Check-In');
+    if(!confirm(`Permanently delete this submission?\n\nInnovator: ${inn.name}\nDate: ${dt}\nType: ${rt}\n\nThis cannot be undone.`)) return;
+    this.loading(true,'Deleting submission...');
+    try{
+      await api('',{},{action:'deleteCheckin',pw:this.S.pmPassword,id:ciId});
+      this.S.checkins=this.S.checkins.filter(c=>c.id!==ciId);
+      this.loading(false); this.renderHistory();
+    }catch(ex){ this.loading(false); alert('Delete failed: '+ex.message); }
   },
 
   exportCSV(){
@@ -1197,7 +1225,7 @@ const App={
       this.loading(false);
       if(this.S.role==='innovator'){
         const rl=this.riskLevel(riskScore);
-        document.getElementById('thanks-msg').innerHTML='Your submission has been received by ACAII.<br>Your programme manager will review it and be in touch within 7 days.';
+        document.getElementById('thanks-msg').innerHTML='Your submission has been received by ACAII.<br>Your project manager will review it and be in touch within 7 days.';
         document.getElementById('thanks-score').innerHTML=`<div style="display:inline-block;padding:16px 24px;border:1px solid var(--border);border-radius:6px"><div style="font-size:36px;font-weight:800;color:${rl.color}">${riskScore}%</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Authenticity Score</div><span class="badge ${rl.bc}" style="margin-top:7px;display:inline-block">${rl.label}</span></div>`;
         document.getElementById('thanks-report-btn').onclick=()=>this.viewReport(id,'innovator');
         this.show('v-thanks');
@@ -1246,7 +1274,7 @@ const App={
       </div>
     </div>
     <div style="background:${rl.bg};border:1px solid ${rl.color}55;border-radius:6px;padding:15px;margin-bottom:14px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:${rl.color};margin-bottom:4px">Programme Manager Action</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:${rl.color};margin-bottom:4px">Project Manager Action</div>
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">${rl.action}</div>
       <div style="font-size:13px">${rl.detail}</div>
     </div>`;
@@ -1326,7 +1354,7 @@ const App={
           <td>${hi?`<span class="badge b-red">${hi}</span>`:'—'}</td>
           <td>${md?`<span class="badge b-amber">${md}</span>`:'—'}</td>
           <td style="font-size:11px;color:var(--muted)">${ci.submittedBy||'—'}</td>
-          <td><button class="btn btn-primary btn-xs" onclick="App.viewReport('${ci.id}','pm')">View</button></td>
+          <td style="display:flex;gap:4px"><button class="btn btn-primary btn-xs" onclick="App.viewReport('${ci.id}','pm')">View</button><button class="btn btn-secondary btn-xs" style="color:var(--red);border-color:var(--red)" onclick="App.deleteCheckin('${ci.id}')">Delete</button></td>
         </tr>`;
       }).join('')}
     </table></div>`;
